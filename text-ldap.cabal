@@ -1,0 +1,22 @@
+
+name:                text-ldap
+version:             0.0.1.0
+synopsis:            Parser and Printer for LDAP text data stream
+-- description:
+license:             BSD3
+license-file:        LICENSE
+author:              Kei Hibino
+maintainer:          ex8k.hibino@gmail.com
+-- copyright:
+category:            Text
+build-type:          Simple
+cabal-version:       >=1.8
+
+library
+  exposed-modules:     Text.LDAP.Data, Text.LDAP.Parser
+  -- other-modules:
+  build-depends:         base <5
+                       , semigroups
+                       , bytestring
+                       , attoparsec
+  hs-source-dirs:        src
