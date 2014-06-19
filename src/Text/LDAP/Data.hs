@@ -10,6 +10,9 @@ module Text.LDAP.Data
        , List1
 
        , quotation, specialChars
+
+       , ldifSafeChars
+       , ldifSafeInitChars
        ) where
 
 import Prelude hiding (reverse)
@@ -53,3 +56,20 @@ quotation =  '"'
 
 specialChars :: String
 specialChars =  [',', '=', '+', '<', '>', '#', ';']
+
+
+-- LDIF
+ldifSafeChars :: String
+ldifSafeChars =
+  ['\x01' .. '\x09']  ++
+  ['\x0B' .. '\x0C']  ++
+  ['\x0E' .. '\x7F']
+
+ldifSafeInitChars :: String
+ldifSafeInitChars =
+  ['\x01' .. '\x09']  ++
+  ['\x0B' .. '\x0C']  ++
+  ['\x0E' .. '\x1F']  ++
+  ['\x21' .. '\x39']  ++
+  ['\x3B']            ++
+  ['\x3D' .. '\x7F']

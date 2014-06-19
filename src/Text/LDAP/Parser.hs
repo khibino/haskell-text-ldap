@@ -1,8 +1,14 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Text.LDAP.Parser
        ( LdapParser, runLdapParser
        , dn
        , component
        , attribute
+
+       , ldifDN, ldifAttr
+
+       , openLdapEntry, openLdapData
        ) where
 
 import Control.Applicative
@@ -23,8 +29,8 @@ import qualified Text.LDAP.Data as Data
 
 type LdapParser = Parser
 
-runLdapParser :: Parser r -> LB.ByteString -> Either String r
-runLdapParser p = eitherResult . parse p
+runLdapParser :: Parser a -> LB.ByteString -> Either String a
+runLdapParser p = eitherResult . parse (p <* AP.endOfInput)
 
 
 word8 :: Char -> Word8
@@ -32,6 +38,12 @@ word8 =  fromIntegral . ord
 
 char :: Char -> LdapParser Char
 char =  AP.char
+
+satisfyW8 :: (Char -> Bool) -> LdapParser Word8
+satisfyW8 =  (word8 <$>) . satisfy
+
+spaces :: LdapParser ()
+spaces =  many (char ' ') *> pure ()
 
 alpha :: LdapParser Char
 alpha =  satisfy isAlpha_ascii
@@ -52,17 +64,18 @@ digits1' :: LdapParser ByteString
 digits1' =  pack <$> some digitW8
 
 
+-- DN
 keychar :: LdapParser Word8
 keychar =  word8 <$> (alpha <|> digit <|> char '-')
 
 quotechar :: LdapParser Word8
-quotechar =  word8 <$> satisfy isAscii
+quotechar =  satisfyW8 isAscii
 
 special :: LdapParser Char
 special =  satisfy (`elem` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  word8 <$> satisfy (`notElem` '\\' : Data.specialChars)
+stringchar =  word8 <$> satisfy (`notElem` '\r' : '\n' : '\\' : Data.specialChars)
 
 hexchar :: LdapParser Char
 hexchar =  digit <|> satisfy (`elem` ['a' .. 'f'] ++ ['A' .. 'F'])
@@ -77,7 +90,7 @@ hexpair =  (rh <$>) $ (:) <$> hexchar <*> ((:) <$> hexchar <*> pure [])  where
 
 pair :: LdapParser Word8
 pair =  char '\\' *> (
-  fromIntegral . ord <$> (
+  word8 <$> (
      special    <|>
      char '\\'  <|>
      quotation)            <|>
@@ -97,7 +110,7 @@ attrOid :: LdapParser AttrType
 attrOid =  Data.attrOid <$> digits1' <*> many (char '.' *> digits1')
 
 attrTypeStr :: LdapParser AttrType
-attrTypeStr =  (Data.AttrType . pack <$>) $ (:) <$> alphaW8 <*> some keychar
+attrTypeStr =  (Data.AttrType . pack <$>) $ (:) <$> alphaW8 <*> many keychar
 
 attrType :: LdapParser AttrType
 attrType =  attrTypeStr <|> attrOid
@@ -111,7 +124,60 @@ attribute =  Data.Attribute
              <*>  attrValue
 
 component :: LdapParser Component
-component =  Data.component <$> attribute <*> some (char '+' *> attribute)
+component =  Data.component <$> attribute <*> many (char '+' *> attribute)
+
+comma :: LdapParser Char
+comma =  spaces *> (char ',' <|> char ';') <* spaces
 
 dn :: LdapParser DN
-dn =  Data.textDN <$> component <*> some (char ',' *> component)
+dn =  Data.textDN <$> component <*> many (comma *> component)
+
+
+
+-- LDIF
+fill :: LdapParser ()
+fill =  spaces
+
+base64Chars :: String
+base64Chars =  ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9'] ++ ['+', '-', '=']
+
+base64String :: LdapParser ByteString
+base64String =  pack <$> many (satisfyW8 (`elem` base64Chars))
+
+ldifSafeString :: LdapParser ByteString
+ldifSafeString =
+  (pack <$>)
+  $ (:)
+  <$> satisfyW8 (`elem` Data.ldifSafeInitChars)
+  <*> many (satisfyW8 (`elem` Data.ldifSafeChars))
+
+ldifDN :: LdapParser DN
+ldifDN =  AP.string "dn:" *> (
+  fill *> dn                      --  <|>
+  -- char ':' *> fill *> base64String
+  )
+
+ldifAttr :: LdapParser (AttrType, ByteString)
+ldifAttr =
+  (,)
+  <$> (attrType <* char ':')
+  <*> ( fill *> ldifSafeString <|>
+        char ':' *> fill *> base64String
+      )
+
+newline :: LdapParser ByteString
+newline =  AP.string "\n" <|> AP.string "\r\n"
+
+openLdapEntry :: LdapParser (DN, [(AttrType, ByteString)])
+openLdapEntry =
+  (,)
+  <$> (ldifDN <* newline)
+  <*> many (ldifAttr <* newline)
+
+openLdapData :: LdapParser [(DN, [(AttrType, ByteString)])]
+openLdapData =  many (openLdapEntry <* newline)
+
+_test0 :: Either String DN
+_test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"
+_testn :: Either String ByteString
+_testn =  runLdapParser newline "\n"
