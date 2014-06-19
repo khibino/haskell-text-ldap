@@ -8,7 +8,7 @@ module Text.LDAP.Parser
 
        , ldifDN, ldifAttr
 
-       , openLdapEntry, openLdapData
+       , openLdapEntry, openLdapData, openLdapDataBlocks
        ) where
 
 import Control.Applicative
@@ -18,6 +18,7 @@ import Data.Word (Word8)
 import Data.Char (isAscii, ord)
 import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Lazy as LB
+import Data.List.Split (splitOn)
 import Data.Attoparsec.ByteString.Char8
   (Parser, satisfy, isAlpha_ascii)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
@@ -176,6 +177,9 @@ openLdapEntry =
 
 openLdapData :: LdapParser [(DN, [(AttrType, ByteString)])]
 openLdapData =  many (openLdapEntry <* newline)
+
+openLdapDataBlocks :: [LB.ByteString] -> [[LB.ByteString]]
+openLdapDataBlocks =  splitOn [""]
 
 _test0 :: Either String DN
 _test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"

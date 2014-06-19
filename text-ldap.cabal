@@ -16,7 +16,15 @@ library
   exposed-modules:     Text.LDAP.Data, Text.LDAP.Parser
   -- other-modules:
   build-depends:         base <5
-                       , semigroups
                        , bytestring
+                       , split
                        , attoparsec
+                       , semigroups
   hs-source-dirs:        src
+
+executable parseTest
+  main-is:             parseTest.hs
+  build-depends:         base <5
+                       , bytestring
+                       , text-ldap
+  hs-source-dirs:      mains
