@@ -152,7 +152,7 @@ fill :: LdapParser ()
 fill =  spaces
 
 base64Bounds :: [(Char, Char)]
-base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), ('+', '-'), ('=', '=')]
+base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), ('+', '+'), ('/', '/'), ('=', '=')]
 
 base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))
