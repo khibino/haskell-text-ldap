@@ -28,6 +28,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data (AttrType (..), Attribute, Component, DN)
+import Text.LDAP.Data (exact)
 import qualified Text.LDAP.Data as Data
 
 
@@ -152,7 +153,7 @@ fill :: LdapParser ()
 fill =  spaces
 
 base64Bounds :: [(Char, Char)]
-base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), ('+', '+'), ('/', '/'), ('=', '=')]
+base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), exact '+', exact '/', exact '=']
 
 base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))

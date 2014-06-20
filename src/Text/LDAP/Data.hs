@@ -8,7 +8,7 @@ module Text.LDAP.Data
        , DN, textDN
 
        , List1
-       , Bound, boundsElems, inBounds, setElem, inMBounds
+       , Bound, exact, boundsElems, inBounds, setElem, inMBounds
 
        , quotation, specialChars
 
@@ -27,6 +27,9 @@ import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
 type List1 = NonEmpty
 
 type Bound a = (a, a)
+
+exact :: a -> Bound a
+exact a = (a, a)
 
 {-# SPECIALIZE bexpand :: (Char, Char) -> [Char] #-}
 bexpand :: Enum a => (a, a) -> [a]
@@ -110,7 +113,7 @@ ldifSafeInitCharBounds =
   , ('\x0B', '\x0C')
   , ('\x0E', '\x1F')
   , ('\x21', '\x39')
-  , ('\x3B', '\x3B')
+  , exact '\x3B'
   , ('\x3D', '\x7F')
   ]
 
