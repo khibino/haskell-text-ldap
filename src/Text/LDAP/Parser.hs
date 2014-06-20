@@ -28,7 +28,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data (AttrType (..), Attribute, Component, DN)
-import Text.LDAP.Data (exact)
+import Text.LDAP.Data (exact, inBounds)
 import qualified Text.LDAP.Data as Data
 
 
@@ -83,7 +83,7 @@ stringchar :: LdapParser Word8
 stringchar =  word8 <$> satisfy (not . (`Data.setElem` '\r' : '\n' : '\\' : Data.specialChars))
 
 hexchar :: LdapParser Char
-hexchar =  digit <|> satisfy (`Data.inBounds` [('a', 'f'), ('A', 'F')])
+hexchar =  digit <|> satisfy (`inBounds` [('a', 'f'), ('A', 'F')])
 
 
 hexpair :: LdapParser Word8
@@ -156,7 +156,7 @@ base64Bounds :: [(Char, Char)]
 base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), exact '+', exact '/', exact '=']
 
 base64String :: LdapParser ByteString
-base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))
+base64String =  pack <$> many (satisfyW8 (`inBounds` base64Bounds))
 
 decodeBase64 :: LdapParser ByteString -> LdapParser ByteString
 decodeBase64 p = do
@@ -175,8 +175,8 @@ ldifSafeString :: LdapParser ByteString
 ldifSafeString =
   (pack <$>)
   $ (:)
-  <$> satisfyW8 Data.isLdifSafeInitChar
-  <*> many (satisfyW8 Data.isLdifSafeChar)
+  <$> satisfyW8 (`inBounds` Data.ldifSafeInitBounds)
+  <*> many (satisfyW8 (`inBounds` Data.ldifSafeBounds))
 
 ldifDN :: LdapParser DN
 ldifDN =  AP.string "dn:" *> (

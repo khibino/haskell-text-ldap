@@ -12,8 +12,8 @@ module Text.LDAP.Data
 
        , quotation, specialChars
 
-       , ldifSafeBounds,     isLdifSafeChar,     ldifSafeChars
-       , ldifSafeInitBounds, isLdifSafeInitChar, ldifSafeInitChars
+       , ldifSafeBounds,     ldifSafeChars
+       , ldifSafeInitBounds, ldifSafeInitChars
        ) where
 
 import Prelude hiding (reverse)
@@ -101,9 +101,6 @@ ldifSafeBounds =
   , ('\x0E', '\x7F')
   ]
 
-isLdifSafeChar :: Char -> Bool
-isLdifSafeChar =  (`inBounds` ldifSafeBounds)
-
 ldifSafeChars :: String
 ldifSafeChars =  boundsElems ldifSafeBounds
 
@@ -116,9 +113,6 @@ ldifSafeInitBounds =
   , exact '\x3B'
   , ('\x3D', '\x7F')
   ]
-
-isLdifSafeInitChar :: Char -> Bool
-isLdifSafeInitChar =  (`inBounds` ldifSafeInitBounds)
 
 ldifSafeInitChars :: String
 ldifSafeInitChars =  boundsElems ldifSafeInitBounds
