@@ -8,11 +8,12 @@ module Text.LDAP.Data
        , DN, textDN
 
        , List1
+       , Bound, boundsElems, inBounds
 
        , quotation, specialChars
 
-       , ldifSafeChars
-       , ldifSafeInitChars
+       , ldifSafeCharBounds,     isLdifSafeChar,     ldifSafeChars
+       , ldifSafeInitCharBounds, isLdifSafeInitChar, ldifSafeInitChars
        ) where
 
 import Prelude hiding (reverse)
@@ -21,6 +22,16 @@ import Data.ByteString (ByteString)
 
 
 type List1 = NonEmpty
+
+type Bound a = (a, a)
+
+{-# SPECIALIZE boundsElems :: [(Char, Char)] -> [Char] #-}
+boundsElems :: Enum a => [(a, a)] -> [a]
+boundsElems =  (>>= \(x, y) -> [x .. y])
+
+{-# SPECIALIZE inBounds :: Char -> [(Char, Char)] -> Bool #-}
+inBounds :: Ord a => a -> [(a, a)] -> Bool
+inBounds a = or . map (\(x, y) -> (x <= a && a <= y))
 
 data AttrType
   = AttrType ByteString
@@ -59,17 +70,31 @@ specialChars =  [',', '=', '+', '<', '>', '#', ';']
 
 
 -- LDIF
+ldifSafeCharBounds :: [(Char, Char)]
+ldifSafeCharBounds =
+  [ ('\x01', '\x09')
+  , ('\x0B', '\x0C')
+  , ('\x0E', '\x7F')
+  ]
+
+isLdifSafeChar :: Char -> Bool
+isLdifSafeChar =  (`inBounds` ldifSafeCharBounds)
+
 ldifSafeChars :: String
-ldifSafeChars =
-  ['\x01' .. '\x09']  ++
-  ['\x0B' .. '\x0C']  ++
-  ['\x0E' .. '\x7F']
+ldifSafeChars =  boundsElems ldifSafeCharBounds
+
+ldifSafeInitCharBounds :: [(Char, Char)]
+ldifSafeInitCharBounds =
+  [ ('\x01', '\x09')
+  , ('\x0B', '\x0C')
+  , ('\x0E', '\x1F')
+  , ('\x21', '\x39')
+  , ('\x3B', '\x3B')
+  , ('\x3D', '\x7F')
+  ]
+
+isLdifSafeInitChar :: Char -> Bool
+isLdifSafeInitChar =  (`inBounds` ldifSafeInitCharBounds)
 
 ldifSafeInitChars :: String
-ldifSafeInitChars =
-  ['\x01' .. '\x09']  ++
-  ['\x0B' .. '\x0C']  ++
-  ['\x0E' .. '\x1F']  ++
-  ['\x21' .. '\x39']  ++
-  ['\x3B']            ++
-  ['\x3D' .. '\x7F']
+ldifSafeInitChars =  boundsElems ldifSafeInitCharBounds
