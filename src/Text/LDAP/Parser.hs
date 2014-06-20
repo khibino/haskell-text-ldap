@@ -28,7 +28,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), Attribute, Component, DN, exact, inBounds, notElem')
+  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, notElem')
 import qualified Text.LDAP.Data as Data
 
 
@@ -126,10 +126,10 @@ attrType =  attrTypeStr <|> attrOid
 _testAT :: Either String AttrType
 _testAT =  runLdapParser attrType "dc"
 
-attrValue :: LdapParser ByteString
+attrValue :: LdapParser AttrValue
 attrValue =  string
 
-_testAV :: Either String ByteString
+_testAV :: Either String AttrValue
 _testAV =  runLdapParser attrValue "com"
 
 attribute :: LdapParser Attribute
