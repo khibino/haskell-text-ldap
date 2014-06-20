@@ -6,7 +6,7 @@ module Text.LDAP.Parser
        , component
        , attribute
 
-       , ldifDN, ldifAttr
+       , ldifDN, ldifAttr, decodeLdifAttrValue
 
        , openLdapEntry, openLdapData, openLdapDataBlocks
        ) where
@@ -162,10 +162,13 @@ base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), exact '+', exact '/', exact
 base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`inBounds` base64Bounds))
 
+padDecodeB64 :: ByteString -> Either String ByteString
+padDecodeB64 s = Base64.decode (s <> pad)  where
+  pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
+
 decodeBase64 :: ByteString -> LdapParser ByteString
-decodeBase64 s =
-  either (fail . ("decodeBase64: " ++)) pure $ Base64.decode (s <> pad)  where
-    pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
+decodeBase64 =
+  either (fail . ("decodeBase64: " ++)) pure . padDecodeB64
 
 parseDN :: ByteString -> LdapParser DN
 parseDN s = do
@@ -203,6 +206,11 @@ openLdapEntry =
   (,)
   <$> (ldifDN <* newline)
   <*> many (ldifAttr <* newline)
+
+decodeLdifAttrValue :: LdifAttrValue -> Either String AttrValue
+decodeLdifAttrValue a = case a of
+  LAttrValRaw    s -> Right s
+  LAttrValBase64 b -> padDecodeB64 b
 
 openLdapData :: LdapParser [(DN, [(AttrType, LdifAttrValue)])]
 openLdapData =  many (openLdapEntry <* newline)
