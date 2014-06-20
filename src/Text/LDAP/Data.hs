@@ -17,22 +17,32 @@ module Text.LDAP.Data
        ) where
 
 import Prelude hiding (reverse)
-import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
+import Data.Ord (comparing)
+import Data.List (sortBy)
 import Data.ByteString (ByteString)
 import Data.Set (fromList, member)
+import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
 
 
 type List1 = NonEmpty
 
 type Bound a = (a, a)
 
+{-# SPECIALIZE bexpand :: (Char, Char) -> [Char] #-}
+bexpand :: Enum a => (a, a) -> [a]
+bexpand (x, y) = [x .. y]
+
 {-# SPECIALIZE boundsElems :: [(Char, Char)] -> [Char] #-}
 boundsElems :: Enum a => [(a, a)] -> [a]
-boundsElems =  (>>= \(x, y) -> [x .. y])
+boundsElems =  (>>= bexpand)
+
+{-# SPECIALIZE widerFirst :: [(Char, Char)] -> [(Char, Char)] #-}
+widerFirst :: (Enum a, Ord a) => [(a, a)] -> [(a, a)]
+widerFirst =  sortBy (flip $ comparing $ length . bexpand)
 
 {-# SPECIALIZE inBounds :: Char -> [(Char, Char)] -> Bool #-}
-inBounds :: Ord a => a -> [(a, a)] -> Bool
-inBounds a = or . map (\(x, y) -> (x <= a && a <= y))
+inBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
+inBounds a = or . map (\(x, y) -> (x <= a && a <= y)) . widerFirst
 
 {-# SPECIALIZE setElem :: Char -> [Char] -> Bool #-}
 setElem :: Ord a => a -> [a] -> Bool
