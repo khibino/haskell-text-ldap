@@ -17,6 +17,7 @@ library
   -- other-modules:
   build-depends:         base <5
                        , bytestring
+                       , containers
                        , split
                        , attoparsec
                        , semigroups

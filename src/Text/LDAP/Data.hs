@@ -8,7 +8,7 @@ module Text.LDAP.Data
        , DN, textDN
 
        , List1
-       , Bound, boundsElems, inBounds
+       , Bound, boundsElems, inBounds, setElem, inMBounds
 
        , quotation, specialChars
 
@@ -19,6 +19,7 @@ module Text.LDAP.Data
 import Prelude hiding (reverse)
 import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
 import Data.ByteString (ByteString)
+import Data.Set (fromList, member)
 
 
 type List1 = NonEmpty
@@ -32,6 +33,16 @@ boundsElems =  (>>= \(x, y) -> [x .. y])
 {-# SPECIALIZE inBounds :: Char -> [(Char, Char)] -> Bool #-}
 inBounds :: Ord a => a -> [(a, a)] -> Bool
 inBounds a = or . map (\(x, y) -> (x <= a && a <= y))
+
+{-# SPECIALIZE setElem :: Char -> [Char] -> Bool #-}
+setElem :: Ord a => a -> [a] -> Bool
+setElem a = (a `member`) . fromList
+
+{-# SPECIALIZE inMBounds :: Char -> [(Char, Char)] -> Bool #-}
+inMBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
+inMBounds a = (a `setElem`) . boundsElems
+
+infix 4 `inBounds`, `setElem`, `inMBounds`
 
 data AttrType
   = AttrType ByteString

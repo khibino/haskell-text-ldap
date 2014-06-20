@@ -76,10 +76,10 @@ special :: LdapParser Char
 special =  satisfy (`elem` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  word8 <$> satisfy (`notElem` '\r' : '\n' : '\\' : Data.specialChars)
+stringchar =  word8 <$> satisfy (not . (`Data.setElem` '\r' : '\n' : '\\' : Data.specialChars))
 
 hexchar :: LdapParser Char
-hexchar =  digit <|> satisfy (`elem` ['a' .. 'f'] ++ ['A' .. 'F'])
+hexchar =  digit <|> satisfy (`Data.inBounds` [('a', 'f'), ('A', 'F')])
 
 
 hexpair :: LdapParser Word8
@@ -116,13 +116,22 @@ attrTypeStr =  (Data.AttrType . pack <$>) $ (:) <$> alphaW8 <*> many keychar
 attrType :: LdapParser AttrType
 attrType =  attrTypeStr <|> attrOid
 
+_testAT :: Either String AttrType
+_testAT =  runLdapParser attrType "dc"
+
 attrValue :: LdapParser ByteString
 attrValue =  string
+
+_testAV :: Either String ByteString
+_testAV =  runLdapParser attrValue "com"
 
 attribute :: LdapParser Attribute
 attribute =  Data.Attribute
              <$> (attrType <* char '=')
              <*>  attrValue
+
+_testAttr :: Either String Attribute
+_testAttr =  runLdapParser attribute "dc=com"
 
 component :: LdapParser Component
 component =  Data.component <$> attribute <*> many (char '+' *> attribute)
@@ -139,18 +148,18 @@ dn =  Data.textDN <$> component <*> many (comma *> component)
 fill :: LdapParser ()
 fill =  spaces
 
-base64Chars :: String
-base64Chars =  ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9'] ++ ['+', '-', '=']
+base64Bounds :: [(Char, Char)]
+base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), ('+', '-'), ('=', '=')]
 
 base64String :: LdapParser ByteString
-base64String =  pack <$> many (satisfyW8 (`elem` base64Chars))
+base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))
 
 ldifSafeString :: LdapParser ByteString
 ldifSafeString =
   (pack <$>)
   $ (:)
-  <$> satisfyW8 (`elem` Data.ldifSafeInitChars)
-  <*> many (satisfyW8 (`elem` Data.ldifSafeChars))
+  <$> satisfyW8 Data.isLdifSafeInitChar
+  <*> many (satisfyW8 Data.isLdifSafeChar)
 
 ldifDN :: LdapParser DN
 ldifDN =  AP.string "dn:" *> (
