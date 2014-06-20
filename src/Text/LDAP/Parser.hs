@@ -28,7 +28,8 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, notElem')
+  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, notElem',
+   LdifAttrValue (..))
 import qualified Text.LDAP.Data as Data
 
 
@@ -161,16 +162,13 @@ base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), exact '+', exact '/', exact
 base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`inBounds` base64Bounds))
 
-decodeBase64 :: LdapParser ByteString -> LdapParser ByteString
-decodeBase64 p = do
-  s <- p
-  let pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
-  either (fail . ("decodeBase64: " ++)) pure
-    $ Base64.decode (s <> pad)
+decodeBase64 :: ByteString -> LdapParser ByteString
+decodeBase64 s =
+  either (fail . ("decodeBase64: " ++)) pure $ Base64.decode (s <> pad)  where
+    pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
 
-parseDN :: LdapParser ByteString -> LdapParser DN
-parseDN p = do
-  s <- p
+parseDN :: ByteString -> LdapParser DN
+parseDN s = do
   either (fail . ("internal parseDN: " ++)) pure
     . runLdapParser dn $ LB.fromChunks [s]
 
@@ -184,28 +182,29 @@ ldifSafeString =
 ldifDN :: LdapParser DN
 ldifDN =  AP.string "dn:" *> (
   fill *> dn                                              <|>
-  char ':' *> fill *> parseDN (decodeBase64 base64String)
+  char ':' *> fill *> (parseDN =<< decodeBase64 =<< base64String)
   )
 
-ldifAttr :: LdapParser (AttrType, ByteString)
+ldifAttr :: LdapParser (AttrType, LdifAttrValue)
 ldifAttr =
   (,)
   <$> (attrType <* char ':')
-  <*> ( fill *> ldifSafeString             <|>
-        char ':' *> fill *> base64String   <|>
-        pure ""
-      )
+  <*> (
+    fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
+    char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
+    pure (LAttrValRaw "")
+    )
 
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
 
-openLdapEntry :: LdapParser (DN, [(AttrType, ByteString)])
+openLdapEntry :: LdapParser (DN, [(AttrType, LdifAttrValue)])
 openLdapEntry =
   (,)
   <$> (ldifDN <* newline)
   <*> many (ldifAttr <* newline)
 
-openLdapData :: LdapParser [(DN, [(AttrType, ByteString)])]
+openLdapData :: LdapParser [(DN, [(AttrType, LdifAttrValue)])]
 openLdapData =  many (openLdapEntry <* newline)
 
 blines :: [LB.ByteString] -> [LB.ByteString]
