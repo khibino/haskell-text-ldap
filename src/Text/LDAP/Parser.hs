@@ -160,7 +160,7 @@ base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))
 decodeBase64 :: LdapParser ByteString -> LdapParser ByteString
 decodeBase64 p = do
   s <- p
-  let pad = BS8.replicate (4 - BS8.length s `rem` 4) '='
+  let pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
   either (fail . ("decodeBase64: " ++)) pure
     $ Base64.decode (s <> pad)
 
