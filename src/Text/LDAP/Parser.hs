@@ -80,7 +80,7 @@ special :: LdapParser Char
 special =  satisfy (`elem` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  word8 <$> satisfy (`notElem'` '\r' : '\n' : '\\' : Data.quotation : Data.specialChars)
+stringchar =  satisfyW8 (`notElem'` '\r' : '\n' : '\\' : Data.quotation : Data.specialChars)
 
 hexchar :: LdapParser Char
 hexchar =  digit <|> satisfy (`inBounds` [('a', 'f'), ('A', 'F')])
@@ -191,8 +191,9 @@ ldifAttr :: LdapParser (AttrType, ByteString)
 ldifAttr =
   (,)
   <$> (attrType <* char ':')
-  <*> ( fill *> ldifSafeString <|>
-        char ':' *> fill *> base64String
+  <*> ( fill *> ldifSafeString             <|>
+        char ':' *> fill *> base64String   <|>
+        pure ""
       )
 
 newline :: LdapParser ByteString
@@ -217,7 +218,7 @@ blines (x:xs) = rec' x xs  where
     where (hd, tl) = LB.splitAt 1 y
 
 openLdapDataBlocks :: [LB.ByteString] -> [[LB.ByteString]]
-openLdapDataBlocks =  map blines . splitOn [""]
+openLdapDataBlocks =  map blines . filter (not . null) . splitOn [""]
 
 _test0 :: Either String DN
 _test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"
