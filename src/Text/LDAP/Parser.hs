@@ -20,7 +20,6 @@ import Data.Char (ord)
 import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
-import Data.List.Split (splitOn)
 import Data.Attoparsec.ByteString.Char8
   (Parser, satisfy, isAlpha_ascii)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
@@ -215,17 +214,24 @@ decodeLdifAttrValue a = case a of
 openLdapData :: LdapParser [(DN, [(AttrType, LdifAttrValue)])]
 openLdapData =  many (openLdapEntry <* newline)
 
-blines :: [LB.ByteString] -> [LB.ByteString]
-blines  []    = []
-blines (x:xs) = rec' x xs  where
-  rec' a []     = [a]
-  rec' a (y:ys)
-    | hd == " "  =  rec' (a <> tl) ys
-    | otherwise  =  a : rec' y ys
-    where (hd, tl) = LB.splitAt 1 y
+contLines :: [LB.ByteString] -> [LB.ByteString]
+contLines =  d  where
+  d  []    = []
+  d (x:xs) = rec' x xs  where
+    rec' a []     = [a]
+    rec' a (y:ys)
+      | hd == " "  =  rec' (a <> tl) ys
+      | otherwise  =  a : rec' y ys
+      where (hd, tl) = LB.splitAt 1 y
+
+blocks :: [LB.ByteString] -> [[LB.ByteString]]
+blocks =  d  where
+  d     []     =  []
+  d ls@(_:_)   =  hd : blocks (drop 1 tl)
+    where  (hd,tl) = break (== "") ls
 
 openLdapDataBlocks :: [LB.ByteString] -> [[LB.ByteString]]
-openLdapDataBlocks =  map blines . filter (not . null) . splitOn [""]
+openLdapDataBlocks =  map contLines . blocks
 
 _test0 :: Either String DN
 _test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"
