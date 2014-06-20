@@ -229,5 +229,3 @@ openLdapDataBlocks =  map blines . filter (not . null) . splitOn [""]
 
 _test0 :: Either String DN
 _test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"
-_testn :: Either String ByteString
-_testn =  runLdapParser newline "\n"
