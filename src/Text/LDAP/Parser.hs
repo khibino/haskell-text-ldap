@@ -203,8 +203,17 @@ openLdapEntry =
 openLdapData :: LdapParser [(DN, [(AttrType, ByteString)])]
 openLdapData =  many (openLdapEntry <* newline)
 
+blines :: [LB.ByteString] -> [LB.ByteString]
+blines  []    = []
+blines (x:xs) = rec' x xs  where
+  rec' a []     = [a]
+  rec' a (y:ys)
+    | hd == " "  =  rec' (a <> tl) ys
+    | otherwise  =  a : rec' y ys
+    where (hd, tl) = LB.splitAt 1 y
+
 openLdapDataBlocks :: [LB.ByteString] -> [[LB.ByteString]]
-openLdapDataBlocks =  splitOn [""]
+openLdapDataBlocks =  map blines . splitOn [""]
 
 _test0 :: Either String DN
 _test0 =  runLdapParser ldifDN "dn: cn=Slash\\\\The Post\\,ma\\=ster\\+\\<\\>\\#\\;,dc=example.sk,dc=com"
