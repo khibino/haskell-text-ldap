@@ -21,7 +21,10 @@ library
                        , split
                        , attoparsec
                        , semigroups
+                       , base64-bytestring
   hs-source-dirs:        src
+  ghc-options:         -Wall -rtsopts
+  ghc-prof-options:    -prof -fprof-auto
 
 executable parseTest
   main-is:             parseTest.hs
@@ -29,3 +32,5 @@ executable parseTest
                        , bytestring
                        , text-ldap
   hs-source-dirs:      mains
+  ghc-options:         -Wall -rtsopts
+  ghc-prof-options:    -prof -fprof-auto
