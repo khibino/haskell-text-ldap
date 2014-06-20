@@ -12,8 +12,8 @@ module Text.LDAP.Data
 
        , quotation, specialChars
 
-       , ldifSafeCharBounds,     isLdifSafeChar,     ldifSafeChars
-       , ldifSafeInitCharBounds, isLdifSafeInitChar, ldifSafeInitChars
+       , ldifSafeBounds,     isLdifSafeChar,     ldifSafeChars
+       , ldifSafeInitBounds, isLdifSafeInitChar, ldifSafeInitChars
        ) where
 
 import Prelude hiding (reverse)
@@ -94,21 +94,21 @@ specialChars =  [',', '=', '+', '<', '>', '#', ';']
 
 
 -- LDIF
-ldifSafeCharBounds :: [(Char, Char)]
-ldifSafeCharBounds =
+ldifSafeBounds :: [(Char, Char)]
+ldifSafeBounds =
   [ ('\x01', '\x09')
   , ('\x0B', '\x0C')
   , ('\x0E', '\x7F')
   ]
 
 isLdifSafeChar :: Char -> Bool
-isLdifSafeChar =  (`inBounds` ldifSafeCharBounds)
+isLdifSafeChar =  (`inBounds` ldifSafeBounds)
 
 ldifSafeChars :: String
-ldifSafeChars =  boundsElems ldifSafeCharBounds
+ldifSafeChars =  boundsElems ldifSafeBounds
 
-ldifSafeInitCharBounds :: [(Char, Char)]
-ldifSafeInitCharBounds =
+ldifSafeInitBounds :: [(Char, Char)]
+ldifSafeInitBounds =
   [ ('\x01', '\x09')
   , ('\x0B', '\x0C')
   , ('\x0E', '\x1F')
@@ -118,7 +118,7 @@ ldifSafeInitCharBounds =
   ]
 
 isLdifSafeInitChar :: Char -> Bool
-isLdifSafeInitChar =  (`inBounds` ldifSafeInitCharBounds)
+isLdifSafeInitChar =  (`inBounds` ldifSafeInitBounds)
 
 ldifSafeInitChars :: String
-ldifSafeInitChars =  boundsElems ldifSafeInitCharBounds
+ldifSafeInitChars =  boundsElems ldifSafeInitBounds
