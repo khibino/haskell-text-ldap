@@ -8,7 +8,7 @@ module Text.LDAP.Data
        , DN, textDN
 
        , List1
-       , Bound, exact, boundsElems, inBounds, setElem, inMBounds
+       , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
 
        , quotation, specialChars
 
@@ -47,15 +47,19 @@ widerFirst =  sortBy (flip $ comparing $ length . bexpand)
 inBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
 inBounds a = or . map (\(x, y) -> (x <= a && a <= y)) . widerFirst
 
-{-# SPECIALIZE setElem :: Char -> [Char] -> Bool #-}
-setElem :: Ord a => a -> [a] -> Bool
-setElem a = (a `member`) . fromList
+{-# SPECIALIZE elem' :: Char -> [Char] -> Bool #-}
+elem' :: Ord a => a -> [a] -> Bool
+elem' a = (a `member`) . fromList
+
+{-# SPECIALIZE notElem' :: Char -> [Char] -> Bool #-}
+notElem' :: Ord a => a -> [a] -> Bool
+notElem' a = not . (a `elem'`)
 
 {-# SPECIALIZE inMBounds :: Char -> [(Char, Char)] -> Bool #-}
 inMBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
-inMBounds a = (a `setElem`) . boundsElems
+inMBounds a = (a `elem'`) . boundsElems
 
-infix 4 `inBounds`, `setElem`, `inMBounds`
+infix 4 `inBounds`, `elem'`, `notElem'`, `inMBounds`
 
 data AttrType
   = AttrType ByteString

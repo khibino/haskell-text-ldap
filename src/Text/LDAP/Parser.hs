@@ -16,7 +16,7 @@ import Control.Applicative
 import Numeric (readHex)
 import Data.Monoid ((<>))
 import Data.Word (Word8)
-import Data.Char (isAscii, ord)
+import Data.Char (ord)
 import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
@@ -27,8 +27,8 @@ import qualified Data.Attoparsec.ByteString.Char8 as AP
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
-import Text.LDAP.Data (AttrType (..), Attribute, Component, DN)
-import Text.LDAP.Data (exact, inBounds)
+import Text.LDAP.Data
+  (AttrType (..), Attribute, Component, DN, exact, inBounds, notElem')
 import qualified Text.LDAP.Data as Data
 
 
@@ -74,13 +74,13 @@ keychar :: LdapParser Word8
 keychar =  word8 <$> (alpha <|> digit <|> char '-')
 
 quotechar :: LdapParser Word8
-quotechar =  satisfyW8 isAscii
+quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
 
 special :: LdapParser Char
 special =  satisfy (`elem` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  word8 <$> satisfy (not . (`Data.setElem` '\r' : '\n' : '\\' : Data.specialChars))
+stringchar =  word8 <$> satisfy (`notElem'` '\r' : '\n' : '\\' : Data.quotation : Data.specialChars)
 
 hexchar :: LdapParser Char
 hexchar =  digit <|> satisfy (`inBounds` [('a', 'f'), ('A', 'F')])
@@ -106,10 +106,13 @@ hexstring :: LdapParser ByteString
 hexstring =  pack <$> some hexpair
 
 string :: LdapParser ByteString
-string =  pack <$> many (stringchar <|> pair)  <|>
+string =  pack <$> some (stringchar <|> pair)  <|>
           char '#' *> hexstring                <|>
-          pack <$> (quotation *> many (quotechar <|> pair) <* quotation)  --  Only for v2
+          pack <$> (quotation *> many (quotechar <|> pair) <* quotation) {- Only for v2 -} <|>
+          pure ""
 
+_testString :: Either String ByteString
+_testString =  runLdapParser string "\",\""
 
 attrOid :: LdapParser AttrType
 attrOid =  Data.attrOid <$> digits1' <*> many (char '.' *> digits1')
