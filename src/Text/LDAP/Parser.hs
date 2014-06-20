@@ -14,15 +14,18 @@ module Text.LDAP.Parser
 import Control.Applicative
   ((<$>), pure, (<*>), (*>), (<*), (<|>), some, many)
 import Numeric (readHex)
+import Data.Monoid ((<>))
 import Data.Word (Word8)
 import Data.Char (isAscii, ord)
 import Data.ByteString (ByteString, pack)
+import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
 import Data.List.Split (splitOn)
 import Data.Attoparsec.ByteString.Char8
   (Parser, satisfy, isAlpha_ascii)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
+import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data (AttrType (..), Attribute, Component, DN)
 import qualified Text.LDAP.Data as Data
@@ -154,6 +157,19 @@ base64Bounds =  [('A', 'Z'), ('a', 'z'), ('0', '9'), ('+', '-'), ('=', '=')]
 base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`Data.inBounds` base64Bounds))
 
+decodeBase64 :: LdapParser ByteString -> LdapParser ByteString
+decodeBase64 p = do
+  s <- p
+  let pad = BS8.replicate (4 - BS8.length s `rem` 4) '='
+  either (fail . ("decodeBase64: " ++)) pure
+    $ Base64.decode (s <> pad)
+
+parseDN :: LdapParser ByteString -> LdapParser DN
+parseDN p = do
+  s <- p
+  either (fail . ("internal parseDN: " ++)) pure
+    . runLdapParser dn $ LB.fromChunks [s]
+
 ldifSafeString :: LdapParser ByteString
 ldifSafeString =
   (pack <$>)
@@ -163,8 +179,8 @@ ldifSafeString =
 
 ldifDN :: LdapParser DN
 ldifDN =  AP.string "dn:" *> (
-  fill *> dn                      --  <|>
-  -- char ':' *> fill *> base64String
+  fill *> dn                                              <|>
+  char ':' *> fill *> parseDN (decodeBase64 base64String)
   )
 
 ldifAttr :: LdapParser (AttrType, ByteString)
