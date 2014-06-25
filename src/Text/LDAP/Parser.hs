@@ -6,7 +6,7 @@ module Text.LDAP.Parser
        , component
        , attribute
 
-       , ldifDN, ldifAttr, decodeLdifAttrValue
+       , ldifDN, ldifAttr, ldifDecodeB64Value
 
        , openLdapEntry, openLdapData, openLdapDataBlocks
        ) where
@@ -204,8 +204,8 @@ openLdapEntry =
   <$> (ldifDN <* newline)
   <*> many (ldifAttr <* newline)
 
-decodeLdifAttrValue :: LdifAttrValue -> Either String AttrValue
-decodeLdifAttrValue a = case a of
+ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValue
+ldifDecodeB64Value a = case a of
   LAttrValRaw    s -> Right s
   LAttrValBase64 b -> padDecodeB64 b
 
