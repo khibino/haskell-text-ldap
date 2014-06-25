@@ -1,5 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-
+-- |
+-- Module      : Text.LDAP.Parser
+-- Copyright   : 2014 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
 module Text.LDAP.Parser
        ( LdapParser, runLdapParser
        , dn
@@ -36,8 +44,10 @@ import Text.LDAP.Data
 import qualified Text.LDAP.Data as Data
 
 
+-- | Parser context type for LDAP data stream
 type LdapParser = Parser
 
+-- | Run 'LdapParser' context.
 runLdapParser :: Parser a -> LB.ByteString -> Either String a
 runLdapParser p = eitherResult . parse (p <* AP.endOfInput)
 
@@ -129,6 +139,7 @@ attrValueString =  string
 _testAV :: Either String AttrValue
 _testAV =  runLdapParser attrValueString "com"
 
+-- | Parser of attribute pair string in RDN.
 attribute :: LdapParser Attribute
 attribute =  Data.Attribute
              <$> (attrType <* char '=')
@@ -137,12 +148,14 @@ attribute =  Data.Attribute
 _testAttr :: Either String Attribute
 _testAttr =  runLdapParser attribute "dc=com"
 
+-- | Parser of RDN string.
 component :: LdapParser Component
 component =  Data.component <$> attribute <*> many (char '+' *> attribute)
 
 comma :: LdapParser Char
 comma =  spaces *> (char ',' <|> char ';') <* spaces
 
+-- | Parser of DN string.
 dn :: LdapParser DN
 dn =  Data.textDN <$> component <*> many (comma *> component)
 
@@ -181,6 +194,7 @@ ldifSafeString =
   <$> satisfyW8 (`inBounds` Data.ldifSafeInitBounds)
   <*> many (satisfyW8 (`inBounds` Data.ldifSafeBounds))
 
+-- | Parser of LDIF DN line.
 ldifDN :: LdapParser DN
 ldifDN =  AP.string "dn:" *> (
   fill *> dn                                              <|>
@@ -193,6 +207,8 @@ ldifAttrValue =
   char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
   pure (LAttrValRaw "")
 
+-- | Parser of LDIF attribute pair line.
+--   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @ldifAttr decodeAttrValue@.
 ldifAttr :: (LdifAttrValue -> LdapParser a) -> LdapParser (AttrType, a)
 ldifAttr dp =
   (,)
@@ -202,6 +218,8 @@ ldifAttr dp =
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
 
+-- | OpenLDAP data-stream block parser.
+--   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @openLdapEntry decodeAttrValue@.
 openLdapEntry :: (LdifAttrValue -> LdapParser a)
                -> LdapParser (DN, [(AttrType, a)])
 openLdapEntry dp =
@@ -209,19 +227,24 @@ openLdapEntry dp =
   <$> (ldifDN <* newline)
   <*> many (ldifAttr dp <* newline)
 
+-- | Decode value string of attribute pair after stream parsing.
 ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValue
 ldifDecodeB64Value a = case a of
   LAttrValRaw    s -> Right s
   LAttrValBase64 b -> padDecodeB64 b
 
+-- | Combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...
 decodeAttrValue :: LdifAttrValue -> LdapParser AttrValue
 decodeAttrValue =
   eitherParser "internal decodeAttrValue"
   . ldifDecodeB64Value
 
+-- | Combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...
 rawAttrValue :: LdifAttrValue -> LdapParser LdifAttrValue
 rawAttrValue =  pure
 
+-- | OpenLDAP data-stream block list parser.
+--   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @openLdapData decodeAttrValue@.
 openLdapData :: (LdifAttrValue -> LdapParser a)
              -> LdapParser [(DN, [(AttrType, a)])]
 openLdapData dp =  many (openLdapEntry dp <* newline)
@@ -242,6 +265,7 @@ blocks =  d  where
   d ls@(_:_)   =  hd : blocks (drop 1 tl)
     where  (hd,tl) = break (== "") ls
 
+-- | Chunking lines of OpenLDAP data stream.
 openLdapDataBlocks :: [LB.ByteString] -> [[LB.ByteString]]
 openLdapDataBlocks =  map contLines . blocks
 
