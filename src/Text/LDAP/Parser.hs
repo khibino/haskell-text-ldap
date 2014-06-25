@@ -39,7 +39,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, notElem',
+  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, elem', notElem',
    LdifAttrValue (..))
 import qualified Text.LDAP.Data as Data
 
@@ -85,7 +85,7 @@ quotechar :: LdapParser Word8
 quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
 
 special :: LdapParser Word8
-special =  satisfyW8 (`elem` Data.specialChars)
+special =  satisfyW8 (`elem'` Data.specialChars)
 
 stringchar :: LdapParser Word8
 stringchar =  satisfyW8 (`notElem'` '\r' : '\n' : '\\' : Data.quotation : Data.specialChars)
