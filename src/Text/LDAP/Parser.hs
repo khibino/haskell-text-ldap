@@ -28,7 +28,6 @@ import Control.Applicative
 import Numeric (readHex)
 import Data.Monoid ((<>))
 import Data.Word (Word8)
-import Data.Char (ord)
 import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
@@ -40,8 +39,8 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, elem', notElem',
-   LdifAttrValue (..))
+  (AttrType (..), AttrValue, Attribute, Component, DN, LdifAttrValue (..),
+   ordW8, exact, inBounds, elem', notElem')
 import qualified Text.LDAP.Data as Data
 
 
@@ -53,11 +52,8 @@ runLdapParser :: Parser a -> LB.ByteString -> Either String a
 runLdapParser p = eitherResult . parse (p <* AP.endOfInput)
 
 
-word8 :: Char -> Word8
-word8 =  fromIntegral . ord
-
 satisfyW8 :: (Char -> Bool) -> LdapParser Word8
-satisfyW8 =  (word8 <$>) . satisfy
+satisfyW8 =  (ordW8 <$>) . satisfy
 
 spaces :: LdapParser ()
 spaces =  many (char ' ') *> pure ()
@@ -66,10 +62,10 @@ alpha :: LdapParser Char
 alpha =  satisfy isAlpha_ascii
 
 alphaW8 :: LdapParser Word8
-alphaW8 =  word8 <$> alpha
+alphaW8 =  ordW8 <$> alpha
 
 digitW8 :: LdapParser Word8
-digitW8 =  word8 <$> digit
+digitW8 =  ordW8 <$> digit
 
 quotation :: LdapParser Word8
 quotation =  char8 Data.quotation
