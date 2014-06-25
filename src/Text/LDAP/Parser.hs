@@ -21,7 +21,7 @@ import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
 import Data.Attoparsec.ByteString.Char8
-  (Parser, satisfy, isAlpha_ascii)
+  (Parser, satisfy, isAlpha_ascii, char)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
@@ -40,9 +40,6 @@ runLdapParser p = eitherResult . parse (p <* AP.endOfInput)
 
 word8 :: Char -> Word8
 word8 =  fromIntegral . ord
-
-char :: Char -> LdapParser Char
-char =  AP.char
 
 satisfyW8 :: (Char -> Bool) -> LdapParser Word8
 satisfyW8 =  (word8 <$>) . satisfy
