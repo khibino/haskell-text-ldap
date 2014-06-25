@@ -2,11 +2,10 @@
 import Control.Applicative
 import Text.LDAP.Parser
 import qualified Data.ByteString.Lazy.Char8 as LB
----  import Data.Either
 
 
 matchTest :: LB.ByteString -> String
-matchTest b = case runLdapParser (openLdapEntry decodeLdifAttrValue) b of
+matchTest b = case runLdapParser (openLdapEntry decodeAttrValue) b of
   Right r -> show r
   Left  e -> "Failed: " ++ show e ++ ": " ++ show b
 

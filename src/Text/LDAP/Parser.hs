@@ -10,7 +10,7 @@ module Text.LDAP.Parser
 
        , openLdapEntry, openLdapData, openLdapDataBlocks
 
-       , decodeLdifAttrValue, rawLdifAttrValue
+       , decodeAttrValue, rawAttrValue
 
        , ldifDecodeB64Value
        ) where
@@ -32,7 +32,7 @@ import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
   (AttrType (..), AttrValueString, Attribute, Component, DN, exact, inBounds, notElem',
-   LdifAttrValue (..))
+   AttrValue (..))
 import qualified Text.LDAP.Data as Data
 
 
@@ -187,13 +187,13 @@ ldifDN =  AP.string "dn:" *> (
   char ':' *> fill *> (parseDN =<< decodeBase64 =<< base64String)
   )
 
-ldifAttrValue :: Parser LdifAttrValue
+ldifAttrValue :: Parser AttrValue
 ldifAttrValue =
   fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
   char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
   pure (LAttrValRaw "")
 
-ldifAttr :: (LdifAttrValue -> LdapParser a) -> LdapParser (AttrType, a)
+ldifAttr :: (AttrValue -> LdapParser a) -> LdapParser (AttrType, a)
 ldifAttr dp =
   (,)
   <$> (attrType <* char ':')
@@ -202,27 +202,27 @@ ldifAttr dp =
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
 
-openLdapEntry :: (LdifAttrValue -> LdapParser a)
+openLdapEntry :: (AttrValue -> LdapParser a)
                -> LdapParser (DN, [(AttrType, a)])
 openLdapEntry dp =
   (,)
   <$> (ldifDN <* newline)
   <*> many (ldifAttr dp <* newline)
 
-ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValueString
+ldifDecodeB64Value :: AttrValue -> Either String AttrValueString
 ldifDecodeB64Value a = case a of
   LAttrValRaw    s -> Right s
   LAttrValBase64 b -> padDecodeB64 b
 
-decodeLdifAttrValue :: LdifAttrValue -> LdapParser AttrValueString
-decodeLdifAttrValue =
-  eitherParser "internal decodeLdifAttrValue"
+decodeAttrValue :: AttrValue -> LdapParser AttrValueString
+decodeAttrValue =
+  eitherParser "internal decodeAttrValue"
   . ldifDecodeB64Value
 
-rawLdifAttrValue :: LdifAttrValue -> LdapParser LdifAttrValue
-rawLdifAttrValue =  pure
+rawAttrValue :: AttrValue -> LdapParser AttrValue
+rawAttrValue =  pure
 
-openLdapData :: (LdifAttrValue -> LdapParser a)
+openLdapData :: (AttrValue -> LdapParser a)
              -> LdapParser [(DN, [(AttrType, a)])]
 openLdapData dp =  many (openLdapEntry dp <* newline)
 

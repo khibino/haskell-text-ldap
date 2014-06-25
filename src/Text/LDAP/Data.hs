@@ -12,7 +12,7 @@ module Text.LDAP.Data
 
        , quotation, specialChars
 
-       , LdifAttrValue (..)
+       , AttrValue (..)
        , ldifSafeBounds
        , ldifSafeInitBounds
        ) where
@@ -99,7 +99,7 @@ specialChars =  [',', '=', '+', '<', '>', '#', ';']
 
 
 -- LDIF
-data LdifAttrValue
+data AttrValue
   = LAttrValRaw    ByteString
   | LAttrValBase64 ByteString
   deriving (Eq, Ord, Show)
