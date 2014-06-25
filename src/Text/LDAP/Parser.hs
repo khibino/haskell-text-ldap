@@ -21,7 +21,7 @@ import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
 import Data.Attoparsec.ByteString.Char8
-  (Parser, satisfy, isAlpha_ascii, char, char8)
+  (Parser, satisfy, isAlpha_ascii, char, char8, digit)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
@@ -52,9 +52,6 @@ alpha =  satisfy isAlpha_ascii
 
 alphaW8 :: LdapParser Word8
 alphaW8 =  word8 <$> alpha
-
-digit :: LdapParser Char
-digit =  AP.digit
 
 digitW8 :: LdapParser Word8
 digitW8 =  word8 <$> digit
