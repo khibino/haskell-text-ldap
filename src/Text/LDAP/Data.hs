@@ -101,11 +101,11 @@ ordW8 =  fromIntegral . ord
 quotation :: Char
 quotation =  '"'
 
-specialChars :: String
-specialChars =  [',', '=', '+', '<', '>', '#', ';']
+specialChars :: [Word8]
+specialChars =  map ordW8 [',', '=', '+', '<', '>', '#', ';']
 
 notValueStringChars :: [Word8]
-notValueStringChars =  map ordW8 $ '\r' : '\n' : '\\' : quotation : specialChars
+notValueStringChars =  map ordW8 ['\r', '\n', '\\', quotation] ++ specialChars
 
 
 -- LDIF

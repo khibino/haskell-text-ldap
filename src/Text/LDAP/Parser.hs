@@ -82,7 +82,7 @@ quotechar :: LdapParser Word8
 quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
 
 special :: LdapParser Word8
-special =  satisfyW8 (`elem'` Data.specialChars)
+special =  APW.satisfy (`elem'` Data.specialChars)
 
 stringchar :: LdapParser Word8
 stringchar =  APW.satisfy (`notElem'` Data.notValueStringChars)
