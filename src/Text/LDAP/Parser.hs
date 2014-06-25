@@ -158,13 +158,16 @@ padDecodeB64 :: ByteString -> Either String ByteString
 padDecodeB64 s = Base64.decode (s <> pad)  where
   pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
 
+eitherParser :: String -> Either String a -> LdapParser a
+eitherParser s = either (fail . ((s ++ ": ") ++)) pure
+
 decodeBase64 :: ByteString -> LdapParser ByteString
 decodeBase64 =
-  either (fail . ("decodeBase64: " ++)) pure . padDecodeB64
+  eitherParser "internal decodeBase64" . padDecodeB64
 
 parseDN :: ByteString -> LdapParser DN
-parseDN s = do
-  either (fail . ("internal parseDN: " ++)) pure
+parseDN s =
+  eitherParser "internal parseDN"
     . runLdapParser dn $ LB.fromChunks [s]
 
 ldifSafeString :: LdapParser ByteString
