@@ -5,7 +5,7 @@ module Text.LDAP.Data
 
        , Component (..), component
 
-       , DN, consDN
+       , DN, consDN, unconsDN
 
        , List1
        , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
@@ -88,6 +88,9 @@ type DN = List1 Component
 
 consDN :: Component -> [Component] -> DN
 consDN h tl = reverse $ h :| tl
+
+unconsDN :: DN -> (Component, [Component])
+unconsDN dn = (h, tl)  where (h :| tl) = reverse dn
 
 quotation :: Char
 quotation =  '"'
