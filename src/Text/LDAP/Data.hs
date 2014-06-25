@@ -11,7 +11,7 @@ module Text.LDAP.Data
        , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
 
        , ordW8
-       , quotation, specialChars, notValueStringChars
+       , quotation, specialChars
 
        , LdifAttrValue (..)
        , ldifSafeBounds
@@ -103,9 +103,6 @@ quotation =  ordW8 '"'
 
 specialChars :: [Word8]
 specialChars =  map ordW8 [',', '=', '+', '<', '>', '#', ';']
-
-notValueStringChars :: [Word8]
-notValueStringChars =  map ordW8 ['\r', '\n', '\\'] ++ quotation : specialChars
 
 
 -- LDIF

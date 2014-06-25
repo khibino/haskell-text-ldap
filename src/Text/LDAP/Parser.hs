@@ -85,7 +85,7 @@ special :: LdapParser Word8
 special =  APW.satisfy (`elem'` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  APW.satisfy (`notElem'` Data.notValueStringChars)
+stringchar =  APW.satisfy (`notElem'` map ordW8 ['\r', '\n', '\\'] ++ Data.quotation : Data.specialChars)
 
 hexchar :: LdapParser Char
 hexchar =  digit <|> satisfy (`inBounds` [('a', 'f'), ('A', 'F')])
