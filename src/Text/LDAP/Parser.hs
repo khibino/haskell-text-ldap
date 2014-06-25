@@ -6,9 +6,13 @@ module Text.LDAP.Parser
        , component
        , attribute
 
-       , ldifDN, ldifAttr, ldifDecodeB64Value
+       , ldifDN, ldifAttr
 
        , openLdapEntry, openLdapData, openLdapDataBlocks
+
+       , decodeLdifAttrValue, rawLdifAttrValue
+
+       , ldifDecodeB64Value
        ) where
 
 import Control.Applicative
@@ -189,20 +193,21 @@ ldifAttrValue =
   char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
   pure (LAttrValRaw "")
 
-ldifAttr :: LdapParser (AttrType, LdifAttrValue)
-ldifAttr =
+ldifAttr :: (LdifAttrValue -> LdapParser a) -> LdapParser (AttrType, a)
+ldifAttr dp =
   (,)
   <$> (attrType <* char ':')
-  <*> ldifAttrValue
+  <*> (dp =<< ldifAttrValue)
 
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
 
-openLdapEntry :: LdapParser (DN, [(AttrType, LdifAttrValue)])
-openLdapEntry =
+openLdapEntry :: (LdifAttrValue -> LdapParser a)
+               -> LdapParser (DN, [(AttrType, a)])
+openLdapEntry dp =
   (,)
   <$> (ldifDN <* newline)
-  <*> many (ldifAttr <* newline)
+  <*> many (ldifAttr dp <* newline)
 
 ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValue
 ldifDecodeB64Value a = case a of
@@ -214,8 +219,12 @@ decodeLdifAttrValue =
   eitherParser "internal decodeLdifAttrValue"
   . ldifDecodeB64Value
 
-openLdapData :: LdapParser [(DN, [(AttrType, LdifAttrValue)])]
-openLdapData =  many (openLdapEntry <* newline)
+rawLdifAttrValue :: LdifAttrValue -> LdapParser LdifAttrValue
+rawLdifAttrValue =  pure
+
+openLdapData :: (LdifAttrValue -> LdapParser a)
+             -> LdapParser [(DN, [(AttrType, a)])]
+openLdapData dp =  many (openLdapEntry dp <* newline)
 
 contLines :: [LB.ByteString] -> [LB.ByteString]
 contLines =  d  where

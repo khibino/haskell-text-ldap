@@ -6,7 +6,7 @@ import qualified Data.ByteString.Lazy.Char8 as LB
 
 
 matchTest :: LB.ByteString -> String
-matchTest b = case runLdapParser openLdapEntry b of
+matchTest b = case runLdapParser (openLdapEntry decodeLdifAttrValue) b of
   Right r -> show r
   Left  e -> "Failed: " ++ show e ++ ": " ++ show b
 
