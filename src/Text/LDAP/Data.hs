@@ -1,7 +1,7 @@
 module Text.LDAP.Data
        ( Attribute (..)
        , AttrType (..), attrOid
-       , AttrValueString
+       , AttrValue
 
        , Component, component
 
@@ -12,7 +12,7 @@ module Text.LDAP.Data
 
        , quotation, specialChars
 
-       , AttrValue (..)
+       , LdifAttrValue (..)
        , ldifSafeBounds
        , ldifSafeInitBounds
        ) where
@@ -70,10 +70,10 @@ data AttrType
 attrOid :: ByteString -> [ByteString] -> AttrType
 attrOid hd tl = AttrOid $ hd :| tl
 
-type AttrValueString = ByteString
+type AttrValue = ByteString
 
 data Attribute =
-  Attribute AttrType AttrValueString
+  Attribute AttrType AttrValue
   deriving (Eq, Ord, Show)
 
 data Component
@@ -99,7 +99,7 @@ specialChars =  [',', '=', '+', '<', '>', '#', ';']
 
 
 -- LDIF
-data AttrValue
+data LdifAttrValue
   = LAttrValRaw    ByteString
   | LAttrValBase64 ByteString
   deriving (Eq, Ord, Show)
