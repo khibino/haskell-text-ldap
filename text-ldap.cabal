@@ -16,11 +16,14 @@ library
   exposed-modules:
                        Text.LDAP.Data
                        Text.LDAP.Parser
+                       Text.LDAP.Printer
   -- other-modules:
   build-depends:         base <5
                        , bytestring
                        , containers
+                       , transformers
                        , attoparsec
+                       , dlist
                        , semigroups
                        , base64-bytestring
   hs-source-dirs:        src
