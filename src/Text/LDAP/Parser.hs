@@ -21,7 +21,7 @@ import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
 import qualified Data.ByteString.Lazy as LB
 import Data.Attoparsec.ByteString.Char8
-  (Parser, satisfy, isAlpha_ascii, char)
+  (Parser, satisfy, isAlpha_ascii, char, char8)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
@@ -59,8 +59,8 @@ digit =  AP.digit
 digitW8 :: LdapParser Word8
 digitW8 =  word8 <$> digit
 
-quotation :: LdapParser Char
-quotation =  char Data.quotation
+quotation :: LdapParser Word8
+quotation =  char8 Data.quotation
 
 digits1' :: LdapParser ByteString
 digits1' =  pack <$> some digitW8
@@ -73,8 +73,8 @@ keychar =  word8 <$> (alpha <|> digit <|> char '-')
 quotechar :: LdapParser Word8
 quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
 
-special :: LdapParser Char
-special =  satisfy (`elem` Data.specialChars)
+special :: LdapParser Word8
+special =  satisfyW8 (`elem` Data.specialChars)
 
 stringchar :: LdapParser Word8
 stringchar =  satisfyW8 (`notElem'` '\r' : '\n' : '\\' : Data.quotation : Data.specialChars)
@@ -92,11 +92,10 @@ hexpair =  (rh <$>) $ (:) <$> hexchar <*> ((:) <$> hexchar <*> pure [])  where
 
 pair :: LdapParser Word8
 pair =  char '\\' *> (
-  word8 <$> (
-     special    <|>
-     char '\\'  <|>
-     quotation)            <|>
-  hexpair)
+  special       <|>
+  char8 '\\'    <|>
+  quotation     <|>
+  hexpair )
 
 
 hexstring :: LdapParser ByteString
