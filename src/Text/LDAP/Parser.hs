@@ -141,7 +141,7 @@ _testAV =  runLdapParser attrValueString "com"
 
 -- | Parser of attribute pair string in RDN.
 attribute :: LdapParser Attribute
-attribute =  Data.Attribute
+attribute =  (,)
              <$> (attrType <* char '=')
              <*>  attrValueString
 
