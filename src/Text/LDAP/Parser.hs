@@ -183,15 +183,17 @@ ldifDN =  AP.string "dn:" *> (
   char ':' *> fill *> (parseDN =<< decodeBase64 =<< base64String)
   )
 
+ldifAttrValue :: Parser LdifAttrValue
+ldifAttrValue =
+  fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
+  char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
+  pure (LAttrValRaw "")
+
 ldifAttr :: LdapParser (AttrType, LdifAttrValue)
 ldifAttr =
   (,)
   <$> (attrType <* char ':')
-  <*> (
-    fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
-    char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
-    pure (LAttrValRaw "")
-    )
+  <*> ldifAttrValue
 
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
