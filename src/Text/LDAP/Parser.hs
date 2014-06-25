@@ -68,7 +68,7 @@ digitW8 :: LdapParser Word8
 digitW8 =  ordW8 <$> digit
 
 quotation :: LdapParser Word8
-quotation =  char8 Data.quotation
+quotation =  APW.word8 Data.quotation
 
 digits1' :: LdapParser ByteString
 digits1' =  pack <$> some digitW8
@@ -79,7 +79,7 @@ keychar :: LdapParser Word8
 keychar =  alphaW8 <|> digitW8 <|> char8 '-'
 
 quotechar :: LdapParser Word8
-quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
+quotechar =  APW.satisfy (`notElem'` [ordW8 '\\', Data.quotation])
 
 special :: LdapParser Word8
 special =  APW.satisfy (`elem'` Data.specialChars)
