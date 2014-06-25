@@ -10,7 +10,7 @@ module Text.LDAP.Data
        , List1
        , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
 
-       , quotation, specialChars
+       , quotation, specialChars, notValueStringChars
 
        , LdifAttrValue (..)
        , ldifSafeBounds
@@ -94,6 +94,9 @@ quotation =  '"'
 
 specialChars :: String
 specialChars =  [',', '=', '+', '<', '>', '#', ';']
+
+notValueStringChars :: String
+notValueStringChars =  '\r' : '\n' : '\\' : quotation : specialChars
 
 
 -- LDIF
