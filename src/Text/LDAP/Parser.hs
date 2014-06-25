@@ -65,7 +65,7 @@ digits1' =  pack <$> some digitW8
 
 -- DN
 keychar :: LdapParser Word8
-keychar =  word8 <$> (alpha <|> digit <|> char '-')
+keychar =  alphaW8 <|> digitW8 <|> char8 '-'
 
 quotechar :: LdapParser Word8
 quotechar =  satisfyW8 (`notElem'` ['\\', Data.quotation])
