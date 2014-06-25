@@ -31,7 +31,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute, Component, DN, exact, inBounds, notElem',
+  (AttrType (..), AttrValueString, Attribute, Component, DN, exact, inBounds, notElem',
    LdifAttrValue (..))
 import qualified Text.LDAP.Data as Data
 
@@ -123,16 +123,16 @@ attrType =  attrTypeStr <|> attrOid
 _testAT :: Either String AttrType
 _testAT =  runLdapParser attrType "dc"
 
-attrValue :: LdapParser AttrValue
-attrValue =  string
+attrValueString :: LdapParser AttrValueString
+attrValueString =  string
 
-_testAV :: Either String AttrValue
-_testAV =  runLdapParser attrValue "com"
+_testAV :: Either String AttrValueString
+_testAV =  runLdapParser attrValueString "com"
 
 attribute :: LdapParser Attribute
 attribute =  Data.Attribute
              <$> (attrType <* char '=')
-             <*>  attrValue
+             <*>  attrValueString
 
 _testAttr :: Either String Attribute
 _testAttr =  runLdapParser attribute "dc=com"
@@ -209,12 +209,12 @@ openLdapEntry dp =
   <$> (ldifDN <* newline)
   <*> many (ldifAttr dp <* newline)
 
-ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValue
+ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValueString
 ldifDecodeB64Value a = case a of
   LAttrValRaw    s -> Right s
   LAttrValBase64 b -> padDecodeB64 b
 
-decodeLdifAttrValue :: LdifAttrValue -> LdapParser AttrValue
+decodeLdifAttrValue :: LdifAttrValue -> LdapParser AttrValueString
 decodeLdifAttrValue =
   eitherParser "internal decodeLdifAttrValue"
   . ldifDecodeB64Value
