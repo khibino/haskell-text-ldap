@@ -10,6 +10,7 @@ module Text.LDAP.Data
        , List1
        , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
 
+       , ordW8
        , quotation, specialChars, notValueStringChars
 
        , LdifAttrValue (..)
@@ -20,6 +21,8 @@ module Text.LDAP.Data
 import Prelude hiding (reverse)
 import Data.Ord (comparing)
 import Data.List (sortBy)
+import Data.Char (ord)
+import Data.Word (Word8)
 import Data.ByteString (ByteString)
 import Data.Set (fromList, member)
 import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
@@ -92,14 +95,17 @@ consDN h tl = reverse $ h :| tl
 unconsDN :: DN -> (Component, [Component])
 unconsDN dn = (h, tl)  where (h :| tl) = reverse dn
 
+ordW8 :: Char -> Word8
+ordW8 =  fromIntegral . ord
+
 quotation :: Char
 quotation =  '"'
 
 specialChars :: String
 specialChars =  [',', '=', '+', '<', '>', '#', ';']
 
-notValueStringChars :: String
-notValueStringChars =  '\r' : '\n' : '\\' : quotation : specialChars
+notValueStringChars :: [Word8]
+notValueStringChars =  map ordW8 $ '\r' : '\n' : '\\' : quotation : specialChars
 
 
 -- LDIF

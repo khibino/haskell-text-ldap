@@ -35,6 +35,7 @@ import qualified Data.ByteString.Lazy as LB
 import Data.Attoparsec.ByteString.Char8
   (Parser, satisfy, isAlpha_ascii, char, char8, digit)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
+import qualified Data.Attoparsec.ByteString as APW
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
@@ -88,7 +89,7 @@ special :: LdapParser Word8
 special =  satisfyW8 (`elem'` Data.specialChars)
 
 stringchar :: LdapParser Word8
-stringchar =  satisfyW8 (`notElem'` Data.notValueStringChars)
+stringchar =  APW.satisfy (`notElem'` Data.notValueStringChars)
 
 hexchar :: LdapParser Char
 hexchar =  digit <|> satisfy (`inBounds` [('a', 'f'), ('A', 'F')])
