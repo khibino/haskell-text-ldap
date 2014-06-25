@@ -209,6 +209,11 @@ ldifDecodeB64Value a = case a of
   LAttrValRaw    s -> Right s
   LAttrValBase64 b -> padDecodeB64 b
 
+decodeLdifAttrValue :: LdifAttrValue -> LdapParser AttrValue
+decodeLdifAttrValue =
+  eitherParser "internal decodeLdifAttrValue"
+  . ldifDecodeB64Value
+
 openLdapData :: LdapParser [(DN, [(AttrType, LdifAttrValue)])]
 openLdapData =  many (openLdapEntry <* newline)
 
