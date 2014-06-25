@@ -157,7 +157,7 @@ comma =  spaces *> (char ',' <|> char ';') <* spaces
 
 -- | Parser of DN string.
 dn :: LdapParser DN
-dn =  Data.textDN <$> component <*> many (comma *> component)
+dn =  Data.consDN <$> component <*> many (comma *> component)
 
 
 
