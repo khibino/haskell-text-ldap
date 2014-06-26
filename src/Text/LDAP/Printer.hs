@@ -6,16 +6,16 @@ module Text.LDAP.Printer
        ) where
 
 import Prelude hiding (reverse)
-import Numeric (showHex)
 import Data.DList (DList, toList)
 import Data.List.NonEmpty (NonEmpty ((:|)))
-import Data.Char (chr, isPrint)
+import Data.Char (chr, isAscii, isPrint)
 import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import Data.ByteString.Char8 (ByteString, singleton)
 import qualified Data.ByteString.Lazy as LB
 import Control.Applicative (pure)
 import Control.Monad.Trans.Writer (Writer, tell, execWriter)
+import Text.Printf (printf)
 
 import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute,
@@ -36,13 +36,23 @@ string =  tell . pure
 bslash :: Word8
 bslash =  ordW8 '\\'
 
+chrW8 :: Word8 -> Char
+chrW8 =  chr . fromIntegral
+
 escapeValueChar :: Word8 -> [Word8]
 escapeValueChar w
+  | not $ isAscii c                       =  hex
   | w `elem'` echars                      =  [bslash, w]
-  | c /= '\r' && c /= '\n' && isPrint c   =  [w]
-  | otherwise                             =  (bslash :) . map ordW8 $ showHex w ""
-  where c = chr $ fromIntegral w
+  | c == '\r' || c == '\n'                =  hex
+  | isPrint c                             =  [w]
+  | otherwise                             =  hex
+  where c      = chrW8 w
         echars = bslash : Data.quotation : Data.specialChars
+        hex    = (bslash :) . map ordW8 $ printf "%02x" w
+
+_testEscape :: IO ()
+_testEscape =
+  putStr $ unlines [ show (w, map chrW8 $ escapeValueChar w) | w <- [0 .. 255 ] ]
 
 escapseValueBS :: ByteString -> ByteString
 escapseValueBS =  BS.pack . concatMap escapeValueChar . BS.unpack
