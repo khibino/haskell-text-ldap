@@ -130,6 +130,8 @@ ldifDN x = do
   string "dn: "
   dn x
 
+-- | Printer of LDIF attribute value already encoded.
+--   Available printer combinator to pass 'ldifAttr' or 'openLdapEntry', etc ...
 ldifAttrValue :: LdapPrinter LdifAttrValue
 ldifAttrValue = d  where
   d (LAttrValRaw s)    = do
@@ -145,10 +147,13 @@ ldifToSafeAttrValue s = do
     Just _    ->  LAttrValRaw s
     Nothing   ->  LAttrValBase64 $ Base64.encode s
 
+-- | Printer of LDIF attribute value with encode not safe string.
+--   Available printer combinator to pass 'ldifAttr' or 'openLdapEntry', etc ...
 ldifEncodeAttrValue :: LdapPrinter ByteString
 ldifEncodeAttrValue =  ldifAttrValue . ldifToSafeAttrValue
 
 -- | Printer of LDIF attribute pair line.
+--   Use with 'ldifAttrValue' or 'ldifEncodeAttrValue' printer, like @ldifAttr ldifEncodeAttrValue@.
 ldifAttr :: LdapPrinter v -> LdapPrinter (AttrType, v)
 ldifAttr vp (a, v) = do
   attrType a
@@ -156,6 +161,7 @@ ldifAttr vp (a, v) = do
   vp v
 
 -- | OpenLDAP data-stream block printer.
+--   Use with 'ldifAttrValue' or 'ldifEncodeAttrValue' printer, like @openLdapEntry ldifEncodeAttrValue@.
 openLdapEntry :: LdapPrinter v -> LdapPrinter (DN, [(AttrType, v)])
 openLdapEntry vp (x, as) = do
   ldifDN x
@@ -163,5 +169,6 @@ openLdapEntry vp (x, as) = do
   mapM_ ((>> newline) . ldifAttr vp) as
 
 -- | OpenLDAP data-stream block list printer.
+--   Use with 'ldifAttrValue' or 'ldifEncodeAttrValue' printer, like @openLdapData ldifEncodeAttrValue@.
 openLdapData :: LdapPrinter v -> LdapPrinter [(DN, [(AttrType, v)])]
 openLdapData vp = mapM_ ((>> newline) . openLdapEntry vp)
