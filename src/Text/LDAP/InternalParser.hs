@@ -1,3 +1,13 @@
+-- |
+-- Module      : Text.LDAP.InternalParser
+-- Copyright   : 2014 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
+-- Module of internal share parsers.
 module Text.LDAP.InternalParser
        ( LdapParser
        , satisfyW8
