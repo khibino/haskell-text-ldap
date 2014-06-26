@@ -10,13 +10,13 @@
 --
 module Text.LDAP.Parser
        ( LdapParser, runLdapParser
-       , dn
-       , component
-       , attribute
+
+       , dn, component, attribute
 
        , ldifDN, ldifAttr
 
-       , openLdapEntry, openLdapData, openLdapDataBlocks
+       , openLdapEntry, openLdapData
+       , openLdapDataBlocks
 
        , decodeAttrValue, rawAttrValue
 
