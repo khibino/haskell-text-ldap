@@ -201,7 +201,7 @@ ldifAttrValue :: Parser LdifAttrValue
 ldifAttrValue =
   fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
   char ':' *> fill *> (LAttrValBase64 <$> base64String)    <|>
-  pure (LAttrValRaw "")
+  fill             *> pure (LAttrValRaw "")
 
 -- | Parser of LDIF attribute pair line.
 --   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @ldifAttr decodeAttrValue@.
