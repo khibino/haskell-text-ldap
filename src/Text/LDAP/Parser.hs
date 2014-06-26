@@ -18,7 +18,7 @@ module Text.LDAP.Parser
        , openLdapEntry, openLdapData
        , openLdapDataBlocks
 
-       , decodeAttrValue, rawAttrValue
+       , ldifDecodeAttrValue, ldifAttrValue
 
        , ldifDecodeB64Value
        ) where
@@ -189,6 +189,7 @@ ldifDN =  AP.string "dn:" *> (
   char ':' *> fill *> (parseDN =<< decodeBase64 =<< base64String)
   )
 
+-- | Combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...
 ldifAttrValue :: Parser LdifAttrValue
 ldifAttrValue =
   fill             *> (LAttrValRaw    <$> ldifSafeString)  <|>
@@ -196,20 +197,20 @@ ldifAttrValue =
   fill             *> pure (LAttrValRaw "")
 
 -- | Parser of LDIF attribute pair line.
---   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @ldifAttr decodeAttrValue@.
-ldifAttr :: (LdifAttrValue -> LdapParser a) -> LdapParser (AttrType, a)
-ldifAttr dp =
+--   Use with 'ldifDecodeAttrValue' or 'rawAttrValue' parser, like @ldifAttr ldifDecodeAttrValue@.
+ldifAttr :: LdapParser a -> LdapParser (AttrType, a)
+ldifAttr vp =
   (,)
   <$> (attrType <* char ':')
-  <*> (dp =<< ldifAttrValue)
+  <*> vp
 
 newline :: LdapParser ByteString
 newline =  AP.string "\n" <|> AP.string "\r\n"
 
 -- | OpenLDAP data-stream block parser.
---   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @openLdapEntry decodeAttrValue@.
-openLdapEntry :: (LdifAttrValue -> LdapParser a)
-               -> LdapParser (DN, [(AttrType, a)])
+--   Use with 'ldifDecodeAttrValue' or 'rawAttrValue' parser, like @openLdapEntry ldifDecodeAttrValue@.
+openLdapEntry :: LdapParser a
+              -> LdapParser (DN, [(AttrType, a)])
 openLdapEntry dp =
   (,)
   <$> (ldifDN <* newline)
@@ -222,18 +223,14 @@ ldifDecodeB64Value a = case a of
   LAttrValBase64 b -> padDecodeB64 b
 
 -- | Combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...
-decodeAttrValue :: LdifAttrValue -> LdapParser AttrValue
-decodeAttrValue =
-  eitherParser "internal decodeAttrValue"
-  . ldifDecodeB64Value
-
--- | Combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...
-rawAttrValue :: LdifAttrValue -> LdapParser LdifAttrValue
-rawAttrValue =  pure
+ldifDecodeAttrValue :: LdapParser AttrValue
+ldifDecodeAttrValue =
+  ldifAttrValue >>=
+  eitherParser "internal ldifDecodeAttrValue" . ldifDecodeB64Value
 
 -- | OpenLDAP data-stream block list parser.
---   Use with 'decodeAttrValue' or 'rawAttrValue' parser, like @openLdapData decodeAttrValue@.
-openLdapData :: (LdifAttrValue -> LdapParser a)
+--   Use with 'ldifDecodeAttrValue' or 'rawAttrValue' parser, like @openLdapData ldifDecodeAttrValue@.
+openLdapData :: LdapParser a
              -> LdapParser [(DN, [(AttrType, a)])]
 openLdapData dp =  many (openLdapEntry dp <* newline)
 
