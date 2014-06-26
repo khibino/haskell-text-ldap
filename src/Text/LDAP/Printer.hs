@@ -17,6 +17,8 @@ module Text.LDAP.Printer
 
        , ldifDN, ldifAttr
 
+       , ldifAttrValue, ldifEncodeAttrValue
+
        , openLdapEntry, openLdapData
        ) where
 
@@ -31,6 +33,8 @@ import qualified Data.ByteString.Lazy as LB
 import Control.Applicative (pure)
 import Control.Monad.Trans.Writer (Writer, tell, execWriter)
 import Text.Printf (printf)
+import qualified Data.ByteString.Base64 as Base64
+import Data.Attoparsec.ByteString (parse, maybeResult)
 
 import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute,
@@ -38,6 +42,7 @@ import Text.LDAP.Data
    LdifAttrValue (..),
    elem', ordW8)
 import qualified Text.LDAP.Data as Data
+import Text.LDAP.InternalParser (ldifSafeString)
 
 
 -- | Printer context type for LDAP data stream
@@ -134,20 +139,29 @@ ldifAttrValue = d  where
     string ": "
     string s
 
+ldifToSafeAttrValue :: ByteString -> LdifAttrValue
+ldifToSafeAttrValue s = do
+  case maybeResult . parse ldifSafeString $ s of
+    Just _    ->  LAttrValRaw s
+    Nothing   ->  LAttrValBase64 $ Base64.encode s
+
+ldifEncodeAttrValue :: LdapPrinter ByteString
+ldifEncodeAttrValue =  ldifAttrValue . ldifToSafeAttrValue
+
 -- | Printer of LDIF attribute pair line.
-ldifAttr :: LdapPrinter (AttrType, LdifAttrValue)
-ldifAttr (a, v) = do
+ldifAttr :: LdapPrinter v -> LdapPrinter (AttrType, v)
+ldifAttr vp (a, v) = do
   attrType a
   char ':'
-  ldifAttrValue v
+  vp v
 
 -- | OpenLDAP data-stream block printer.
-openLdapEntry :: LdapPrinter (DN, [(AttrType, LdifAttrValue)])
-openLdapEntry (x, as) = do
+openLdapEntry :: LdapPrinter v -> LdapPrinter (DN, [(AttrType, v)])
+openLdapEntry vp (x, as) = do
   ldifDN x
   newline
-  mapM_ ((>> newline) . ldifAttr) as
+  mapM_ ((>> newline) . ldifAttr vp) as
 
 -- | OpenLDAP data-stream block list printer.
-openLdapData :: LdapPrinter [(DN, [(AttrType, LdifAttrValue)])]
-openLdapData = mapM_ ((>> newline) . openLdapEntry)
+openLdapData :: LdapPrinter v -> LdapPrinter [(DN, [(AttrType, v)])]
+openLdapData vp = mapM_ ((>> newline) . openLdapEntry vp)
