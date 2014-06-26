@@ -42,18 +42,17 @@ import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute, Component, DN, LdifAttrValue (..),
    ordW8, exact, inBounds, elem', notElem')
 import qualified Text.LDAP.Data as Data
+import Text.LDAP.InternalParser (satisfyW8, ldifSafeString)
+import qualified Text.LDAP.InternalParser as Internal
 
 
 -- | Parser context type for LDAP data stream
-type LdapParser = Parser
+type LdapParser = Internal.LdapParser
 
 -- | Run 'LdapParser' context.
 runLdapParser :: Parser a -> LB.ByteString -> Either String a
 runLdapParser p = eitherResult . parse (p <* AP.endOfInput)
 
-
-satisfyW8 :: (Char -> Bool) -> LdapParser Word8
-satisfyW8 =  (ordW8 <$>) . satisfy
 
 spaces :: LdapParser ()
 spaces =  many (char ' ') *> pure ()
@@ -182,13 +181,6 @@ parseDN :: ByteString -> LdapParser DN
 parseDN s =
   eitherParser "internal parseDN"
     . runLdapParser dn $ LB.fromChunks [s]
-
-ldifSafeString :: LdapParser ByteString
-ldifSafeString =
-  (pack <$>)
-  $ (:)
-  <$> satisfyW8 (`inBounds` Data.ldifSafeInitBounds)
-  <*> many (satisfyW8 (`inBounds` Data.ldifSafeBounds))
 
 -- | Parser of LDIF DN line.
 ldifDN :: LdapParser DN

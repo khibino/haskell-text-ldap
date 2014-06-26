@@ -17,7 +17,9 @@ library
                        Text.LDAP.Data
                        Text.LDAP.Parser
                        Text.LDAP.Printer
-  -- other-modules:
+  other-modules:
+                       Text.LDAP.InternalParser
+
   build-depends:         base <5
                        , bytestring
                        , containers
