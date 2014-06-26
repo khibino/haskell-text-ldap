@@ -13,7 +13,7 @@ module Text.LDAP.Printer
 
        , dn
        , component
-       , attrType
+       , attribute
 
        , ldifDN, ldifAttr
 
