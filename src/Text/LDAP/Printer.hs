@@ -1,8 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Text.LDAP.Printer
-       ( runLdapPrinter
+       ( LdapPrinter, runLdapPrinter, LdapPutM
+
        , dn
+       , component
+       , attrType
+
+       , ldifDN, ldifAttr
+
+       , openLdapEntry, openLdapData
        ) where
 
 import Prelude hiding (reverse)
@@ -20,6 +27,7 @@ import Text.Printf (printf)
 import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute,
    Component (..), DN, unconsDN,
+   LdifAttrValue (..),
    elem', ordW8)
 import qualified Text.LDAP.Data as Data
 
@@ -60,6 +68,9 @@ escapseValueBS =  BS.pack . concatMap escapeValueChar . BS.unpack
 char :: LdapPrinter Char
 char =  string . singleton
 
+newline :: LdapPutM ()
+newline =  char '\n'
+
 -- DN
 attrType :: LdapPrinter AttrType
 attrType =  d  where
@@ -92,3 +103,30 @@ dn =  d . unconsDN where
 
 
 -- LDIF
+ldifDN :: LdapPrinter DN
+ldifDN x = do
+  string "dn: "
+  dn x
+
+ldifAttrValue :: LdapPrinter LdifAttrValue
+ldifAttrValue = d  where
+  d (LAttrValRaw s)    = do
+    char ' '
+    string s
+  d (LAttrValBase64 s) = do
+    string ": "
+    string s
+
+ldifAttr :: LdapPrinter (AttrType, LdifAttrValue)
+ldifAttr (a, v) = do
+  attrType a
+  ldifAttrValue v
+
+openLdapEntry :: LdapPrinter (DN, [(AttrType, LdifAttrValue)])
+openLdapEntry (x, as) = do
+  ldifDN x
+  newline
+  mapM_ ((>> newline) . ldifAttr) as
+
+openLdapData :: LdapPrinter [(DN, [(AttrType, LdifAttrValue)])]
+openLdapData = mapM_ ((>> newline) . openLdapEntry)
