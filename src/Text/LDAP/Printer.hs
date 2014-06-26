@@ -7,7 +7,6 @@ module Text.LDAP.Printer
 
 import Prelude hiding (reverse)
 import Numeric (showHex)
-import Data.Monoid (mempty, (<>))
 import Data.DList (DList, toList)
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Char (chr, isPrint)
@@ -16,7 +15,7 @@ import qualified Data.ByteString as BS
 import Data.ByteString.Char8 (ByteString, singleton)
 import qualified Data.ByteString.Lazy as LB
 import Control.Applicative (pure)
-import Control.Monad.Trans.State (State, modify, execState)
+import Control.Monad.Trans.Writer (Writer, tell, execWriter)
 
 import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute,
@@ -25,14 +24,14 @@ import Text.LDAP.Data
 import qualified Text.LDAP.Data as Data
 
 
-type LdapPutM = State (DList ByteString)
+type LdapPutM = Writer (DList ByteString)
 type LdapPrinter a = a -> LdapPutM ()
 
 runLdapPrinter :: LdapPrinter a -> a -> LB.ByteString
-runLdapPrinter p = LB.fromChunks . toList . (`execState` mempty) . p
+runLdapPrinter p = LB.fromChunks . toList . execWriter . p
 
 string :: LdapPrinter ByteString
-string s = modify (<> pure s)
+string =  tell . pure
 
 bslash :: Word8
 bslash =  ordW8 '\\'
