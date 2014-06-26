@@ -176,8 +176,7 @@ eitherParser :: String -> Either String a -> LdapParser a
 eitherParser s = either (fail . ((s ++ ": ") ++)) pure
 
 decodeBase64 :: ByteString -> LdapParser ByteString
-decodeBase64 =
-  eitherParser "internal decodeBase64" . padDecodeB64
+decodeBase64 =  eitherParser "internal decodeBase64" . padDecodeB64
 
 parseDN :: ByteString -> LdapParser DN
 parseDN s =
