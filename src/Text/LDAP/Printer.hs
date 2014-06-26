@@ -120,6 +120,7 @@ ldifAttrValue = d  where
 ldifAttr :: LdapPrinter (AttrType, LdifAttrValue)
 ldifAttr (a, v) = do
   attrType a
+  char ':'
   ldifAttrValue v
 
 openLdapEntry :: LdapPrinter (DN, [(AttrType, LdifAttrValue)])
