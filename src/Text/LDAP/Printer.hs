@@ -30,11 +30,11 @@ import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import Data.ByteString.Char8 (ByteString, singleton)
 import qualified Data.ByteString.Lazy as LB
-import Control.Applicative (pure)
+import Control.Applicative (pure, (<*))
 import Control.Monad.Trans.Writer (Writer, tell, execWriter)
 import Text.Printf (printf)
 import qualified Data.ByteString.Base64 as Base64
-import Data.Attoparsec.ByteString (parse, maybeResult)
+import Data.Attoparsec.ByteString (parseOnly, endOfInput)
 
 import Text.LDAP.Data
   (AttrType (..), AttrValue, Attribute,
@@ -143,9 +143,9 @@ ldifAttrValue = d  where
 
 ldifToSafeAttrValue :: ByteString -> LdifAttrValue
 ldifToSafeAttrValue s = do
-  case maybeResult . parse ldifSafeString $ s of
-    Just _    ->  LAttrValRaw s
-    Nothing   ->  LAttrValBase64 $ Base64.encode s
+  case parseOnly (ldifSafeString <* endOfInput) $ s of
+    Right _    ->  LAttrValRaw s
+    Left  _    ->  LAttrValBase64 $ Base64.encode s
 
 -- | Printer of LDIF attribute value with encode not safe string.
 --   Available printer combinator to pass 'ldifAttr' or 'openLdapEntry', etc ...
