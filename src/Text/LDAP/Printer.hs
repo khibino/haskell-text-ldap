@@ -1,5 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
-
+-- |
+-- Module      : Text.LDAP.Printer
+-- Copyright   : 2014 Kei Hibino
+-- License     : BSD3
+--
+-- Maintainer  : ex8k.hibino@gmail.com
+-- Stability   : experimental
+-- Portability : unknown
+--
 module Text.LDAP.Printer
        ( LdapPrinter, runLdapPrinter, LdapPutM
 
@@ -32,9 +40,13 @@ import Text.LDAP.Data
 import qualified Text.LDAP.Data as Data
 
 
+-- | Printer context type for LDAP data stream
 type LdapPutM = Writer (DList ByteString)
+
+-- | 'LdapPrinter' 'a' print type 'a' into context
 type LdapPrinter a = a -> LdapPutM ()
 
+-- | Run 'LdapPrinter'
 runLdapPrinter :: LdapPrinter a -> a -> LB.ByteString
 runLdapPrinter p = LB.fromChunks . toList . execWriter . p
 
@@ -82,12 +94,14 @@ attrType =  d  where
 attrValue :: LdapPrinter AttrValue
 attrValue =  string . escapseValueBS
 
+-- | Printer of attribute pair string in RDN.
 attribute :: LdapPrinter Attribute
 attribute (t, v) =  do
   attrType  t
   char '='
   attrValue v
 
+-- | Printer of RDN string.
 component :: LdapPrinter Component
 component =  d  where
   d (S a)          =  attribute a
@@ -95,6 +109,7 @@ component =  d  where
     attribute a
     mapM_ (\a' -> char '+' >> attribute a') as
 
+-- | Printer of DN string.
 dn :: LdapPrinter DN
 dn =  d . unconsDN where
   d (c, cs)  =  do
@@ -103,6 +118,8 @@ dn =  d . unconsDN where
 
 
 -- LDIF
+
+-- | Printer of LDIF DN line.
 ldifDN :: LdapPrinter DN
 ldifDN x = do
   string "dn: "
@@ -117,17 +134,20 @@ ldifAttrValue = d  where
     string ": "
     string s
 
+-- | Printer of LDIF attribute pair line.
 ldifAttr :: LdapPrinter (AttrType, LdifAttrValue)
 ldifAttr (a, v) = do
   attrType a
   char ':'
   ldifAttrValue v
 
+-- | OpenLDAP data-stream block printer.
 openLdapEntry :: LdapPrinter (DN, [(AttrType, LdifAttrValue)])
 openLdapEntry (x, as) = do
   ldifDN x
   newline
   mapM_ ((>> newline) . ldifAttr) as
 
+-- | OpenLDAP data-stream block list printer.
 openLdapData :: LdapPrinter [(DN, [(AttrType, LdifAttrValue)])]
 openLdapData = mapM_ ((>> newline) . openLdapEntry)
