@@ -55,9 +55,11 @@ executable ppTest
 Test-suite pp
   build-depends:         base <5
                        , bytestring
-                       , text-ldap
+                       , random
                        , semigroups
+                       , text-ldap
                        , QuickCheck >=2
+                       , Cabal
 
   type:                detailed-0.9
   test-module:         PrintParse
