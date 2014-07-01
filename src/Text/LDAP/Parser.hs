@@ -39,7 +39,7 @@ import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
 import qualified Data.ByteString.Base64 as Base64
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute, Component, DN, LdifAttrValue (..),
+  (AttrType (..), AttrValue (..), Attribute, Component, DN, LdifAttrValue (..),
    ordW8, exact, inBounds, elem', notElem')
 import qualified Text.LDAP.Data as Data
 import Text.LDAP.InternalParser (satisfyW8, ldifSafeString)
@@ -130,7 +130,7 @@ _testAT :: Either String AttrType
 _testAT =  runLdapParser attrType "dc"
 
 attrValueString :: LdapParser AttrValue
-attrValueString =  string
+attrValueString =  AttrValue <$> string
 
 _testAV :: Either String AttrValue
 _testAV =  runLdapParser attrValueString "com"
@@ -200,8 +200,8 @@ ldifAttrValue =
 -- | Decode value string of attribute pair after stream parsing.
 ldifDecodeB64Value :: LdifAttrValue -> Either String AttrValue
 ldifDecodeB64Value a = case a of
-  LAttrValRaw    s -> Right s
-  LAttrValBase64 b -> padDecodeB64 b
+  LAttrValRaw    s -> Right $ AttrValue s
+  LAttrValBase64 b -> AttrValue <$> padDecodeB64 b
 
 -- | Parser of LDIF attribute value. This parser decodes base64 string.
 --   Available combinator parser to pass 'ldifAttr' or 'openLdapEntry', etc ...

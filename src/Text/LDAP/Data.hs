@@ -1,7 +1,7 @@
 module Text.LDAP.Data
        ( Attribute
        , AttrType (..), attrOid
-       , AttrValue
+       , AttrValue (..)
 
        , Component (..), component
 
@@ -73,7 +73,8 @@ data AttrType
 attrOid :: ByteString -> [ByteString] -> AttrType
 attrOid hd tl = AttrOid $ hd :| tl
 
-type AttrValue = ByteString
+newtype AttrValue = AttrValue ByteString
+                  deriving (Eq, Ord, Show)
 
 type Attribute = (AttrType, AttrValue)
 

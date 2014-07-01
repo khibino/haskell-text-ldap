@@ -37,7 +37,7 @@ import qualified Data.ByteString.Base64 as Base64
 import Data.Attoparsec.ByteString (parseOnly, endOfInput)
 
 import Text.LDAP.Data
-  (AttrType (..), AttrValue, Attribute,
+  (AttrType (..), AttrValue (..), Attribute,
    Component (..), DN, unconsDN,
    LdifAttrValue (..),
    elem', ordW8)
@@ -97,7 +97,7 @@ attrType =  d  where
     mapM_ (\x' ->  char '.' >> string x') xs
 
 attrValue :: LdapPrinter AttrValue
-attrValue =  string . escapseValueBS
+attrValue (AttrValue s) =  string . escapseValueBS $ s
 
 -- | Printer of attribute pair string in RDN.
 attribute :: LdapPrinter Attribute
@@ -141,15 +141,15 @@ ldifAttrValue = d  where
     string ": "
     string s
 
-ldifToSafeAttrValue :: ByteString -> LdifAttrValue
-ldifToSafeAttrValue s = do
+ldifToSafeAttrValue :: AttrValue -> LdifAttrValue
+ldifToSafeAttrValue (AttrValue s) = do
   case parseOnly (ldifSafeString <* endOfInput) $ s of
     Right _    ->  LAttrValRaw s
     Left  _    ->  LAttrValBase64 $ Base64.encode s
 
 -- | Printer of LDIF attribute value with encode not safe string.
 --   Available printer combinator to pass 'ldifAttr' or 'openLdapEntry', etc ...
-ldifEncodeAttrValue :: LdapPrinter ByteString
+ldifEncodeAttrValue :: LdapPrinter AttrValue
 ldifEncodeAttrValue =  ldifAttrValue . ldifToSafeAttrValue
 
 -- | Printer of LDIF attribute pair line.
