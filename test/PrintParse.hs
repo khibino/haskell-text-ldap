@@ -12,7 +12,7 @@ import Test.QuickCheck
 import Control.Exception (try)
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
-import Text.LDAP.Data (AttrType (..), Attribute, List1)
+import Text.LDAP.Data (AttrType (..), AttrValue (..), Attribute, List1)
 import Text.LDAP.Printer (LdapPrinter, runLdapPrinter)
 import qualified Text.LDAP.Printer as Printer
 import Text.LDAP.Parser (LdapParser, runLdapParser)
@@ -72,22 +72,24 @@ bstring1 :: Int -> Gen ByteString
 bstring1 =  bstring' 1
 
 
-
 attrType :: Gen AttrType
 attrType = oneof
            [ AttrType <$> keystr
            , (AttrOid <$>) $ boundInt 1 8 >>= list1 oidpe
            ]
 
-attribute :: Gen Attribute
-attribute =  (,) <$> attrType <*> bstring 1024
+attrValue :: Gen AttrValue
+attrValue =  AttrValue <$> bstring 0x2000
 
 
-prop_iso :: Eq a => LdapPrinter a -> LdapParser a -> a -> Bool
-prop_iso pr ps a = Right a == (runLdapParser ps . runLdapPrinter pr $ a)
+isoProp :: Eq a => LdapPrinter a -> LdapParser a -> a -> Bool
+isoProp pr ps a = Right a == (runLdapParser ps . runLdapPrinter pr $ a)
 
-instance Arbitrary Attribute where
-  arbitrary = attribute
+instance Arbitrary AttrType where
+  arbitrary = attrType
+
+instance Arbitrary AttrValue where
+  arbitrary = attrValue
 
 prop_attribute :: Attribute -> Bool
-prop_attribute =  prop_iso Printer.attribute Parser.attribute
+prop_attribute =  isoProp Printer.attribute Parser.attribute
