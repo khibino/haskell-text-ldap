@@ -67,9 +67,6 @@ bstring' n m = (pack <$>) $ choose (n, m) >>= list (elements ['\0'..'\255'])
 bstring :: Int -> Gen ByteString
 bstring =  bstring' 0
 
-bstring1 :: Int -> Gen ByteString
-bstring1 =  bstring' 1
-
 
 attrType :: Gen AttrType
 attrType =
