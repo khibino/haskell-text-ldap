@@ -12,7 +12,7 @@ import Test.QuickCheck
 import Control.Exception (try)
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
-import Text.LDAP.Data (AttrType (..), AttrValue (..), Attribute, List1)
+import Text.LDAP.Data (AttrType (..), AttrValue (..), Attribute, Component (..), DN, List1)
 import Text.LDAP.Printer (LdapPrinter, runLdapPrinter)
 import qualified Text.LDAP.Printer as Printer
 import Text.LDAP.Parser (LdapParser, runLdapParser)
@@ -75,12 +75,17 @@ bstring1 =  bstring' 1
 attrType :: Gen AttrType
 attrType = oneof
            [ AttrType <$> keystr
-           , (AttrOid <$>) $ boundInt 1 8 >>= list1 oidpe
+           , AttrOid  <$> (boundInt 1 8 >>= list1 oidpe)
            ]
 
 attrValue :: Gen AttrValue
-attrValue =  AttrValue <$> bstring 0x2000
+attrValue =  AttrValue <$> bstring 0x400
 
+component :: Gen Component
+component =  oneof
+             [ S <$> arbitrary
+             , L <$> (boundInt 2 5 >>= list1 arbitrary)
+             ]
 
 isoProp :: Eq a => LdapPrinter a -> LdapParser a -> a -> Bool
 isoProp pr ps a = Right a == (runLdapParser ps . runLdapPrinter pr $ a)
@@ -91,5 +96,17 @@ instance Arbitrary AttrType where
 instance Arbitrary AttrValue where
   arbitrary = attrValue
 
+instance Arbitrary Component where
+  arbitrary = component
+
+instance Arbitrary DN where
+  arbitrary = boundInt 1 30 >>= list1 arbitrary
+
 prop_attribute :: Attribute -> Bool
 prop_attribute =  isoProp Printer.attribute Parser.attribute
+
+prop_component :: Component -> Bool
+prop_component =  isoProp Printer.component Parser.component
+
+prop_dn :: DN -> Bool
+prop_dn =  isoProp Printer.dn Parser.dn
