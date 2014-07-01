@@ -79,8 +79,8 @@ _testEscape :: IO ()
 _testEscape =
   putStr $ unlines [ show (w, map chrW8 $ escapeValueChar w) | w <- [0 .. 255 ] ]
 
-escapseValueBS :: ByteString -> ByteString
-escapseValueBS =  BS.pack . concatMap escapeValueChar . BS.unpack
+escapeValueBS :: ByteString -> ByteString
+escapeValueBS =  BS.pack . concatMap escapeValueChar . BS.unpack
 
 char :: LdapPrinter Char
 char =  string . singleton
@@ -97,7 +97,7 @@ attrType =  d  where
     mapM_ (\x' ->  char '.' >> string x') xs
 
 attrValue :: LdapPrinter AttrValue
-attrValue (AttrValue s) =  string . escapseValueBS $ s
+attrValue (AttrValue s) =  string . escapeValueBS $ s
 
 -- | Printer of attribute pair string in RDN.
 attribute :: LdapPrinter Attribute
