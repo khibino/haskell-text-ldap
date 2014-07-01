@@ -17,7 +17,7 @@ module Text.LDAP.Data
        , DN, consDN, unconsDN
 
        , List1
-       , Bound, exact, boundsElems, inBounds, elem', notElem', inMBounds
+       , Bound, exact, boundsElems, inBounds, elem', notElem', inSBounds
 
        , ordW8
        , quotation, specialChars
@@ -76,11 +76,11 @@ notElem' :: Ord a => a -> [a] -> Bool
 notElem' a = not . (a `elem'`)
 
 -- | Test element in value bounds using ordered set.
-{-# SPECIALIZE inMBounds :: Char -> [(Char, Char)] -> Bool #-}
-inMBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
-inMBounds a = (a `elem'`) . boundsElems
+{-# SPECIALIZE inSBounds :: Char -> [(Char, Char)] -> Bool #-}
+inSBounds :: (Enum a, Ord a) => a -> [(a, a)] -> Bool
+inSBounds a = (a `elem'`) . boundsElems
 
-infix 4 `inBounds`, `elem'`, `notElem'`, `inMBounds`
+infix 4 `inBounds`, `elem'`, `notElem'`, `inSBounds`
 
 -- | Type of dn attribute type
 data AttrType
