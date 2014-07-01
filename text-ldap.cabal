@@ -29,7 +29,7 @@ library
                        , semigroups
                        , base64-bytestring
   hs-source-dirs:        src
-  ghc-options:         -Wall -rtsopts
+  ghc-options:         -Wall
   ghc-prof-options:    -prof -fprof-auto
 
 
