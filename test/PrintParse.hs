@@ -1,7 +1,7 @@
 {-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module PrintParse where
+module PrintParse (tests) where
 
 import Distribution.TestSuite
   (Test (Test), TestInstance (TestInstance), Result (Pass, Fail), Progress (Finished))
@@ -104,21 +104,33 @@ instance Arbitrary Component where
 instance Arbitrary DN where
   arbitrary = choose (1, 30) >>= list1 arbitrary
 
-prop_attribute :: Attribute -> Bool
-prop_attribute =  isoProp Printer.attribute Parser.attribute
+prop_attributeIso :: Attribute -> Bool
+prop_attributeIso =  isoProp Printer.attribute Parser.attribute
 
-prop_component :: Component -> Bool
-prop_component =  isoProp Printer.component Parser.component
+prop_componentIso :: Component -> Bool
+prop_componentIso =  isoProp Printer.component Parser.component
 
-prop_dn :: DN -> Bool
-prop_dn =  isoProp Printer.dn Parser.dn
+prop_dnIso :: DN -> Bool
+prop_dnIso =  isoProp Printer.dn Parser.dn
 
-prop_ldifAttr :: (AttrType, AttrValue) -> Bool
-prop_ldifAttr =  isoProp
-                 (Printer.ldifAttr Printer.ldifEncodeAttrValue)
-                 (Parser.ldifAttr  Parser.ldifDecodeAttrValue)
+prop_ldifAttrIso :: (AttrType, AttrValue) -> Bool
+prop_ldifAttrIso =
+  isoProp
+  (Printer.ldifAttr Printer.ldifEncodeAttrValue)
+  (Parser.ldifAttr  Parser.ldifDecodeAttrValue)
 
-prop_openLdapEntry :: (DN, [(AttrType, AttrValue)]) -> Bool
-prop_openLdapEntry =  isoProp
-                      (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
-                      (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
+prop_openLdapEntryIso :: (DN, [(AttrType, AttrValue)]) -> Bool
+prop_openLdapEntryIso =
+  isoProp
+  (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
+  (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
+
+tests :: IO [Test]
+tests =
+  return
+  [ testSuite prop_attributeIso "attribute iso - print parse"
+  , testSuite prop_componentIso "component iso - print parse"
+  , testSuite prop_dnIso "dn iso - print parse"
+  , testSuite prop_ldifAttrIso "ldifAttr iso - print parse"
+  , testSuite prop_openLdapEntryIso "openLdapEntry iso - print parse"
+  ]
