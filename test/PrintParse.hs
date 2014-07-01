@@ -10,13 +10,11 @@ import Test.QuickCheck
    choose, oneof, frequency, elements, quickCheck)
 
 import Control.Exception (try)
-import Control.Applicative ((<$>), (<*>), pure)
-import Data.Monoid (mempty)
+import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
 import Text.LDAP.Data
   (AttrType (..), AttrValue (..), Attribute, Component (..),
-   DN, List1, LdifAttrValue (..),
-   boundsElems, ldifSafeInitBounds, ldifSafeBounds)
+   DN, List1)
 import Text.LDAP.Printer (LdapPrinter, runLdapPrinter)
 import qualified Text.LDAP.Printer as Printer
 import Text.LDAP.Parser (LdapParser, runLdapParser)
