@@ -7,12 +7,16 @@ import Distribution.TestSuite
   (Test (Test), TestInstance (TestInstance), Result (Pass, Fail), Progress (Finished))
 import Test.QuickCheck
   (Testable, Gen, Arbitrary (..),
-   choose, oneof, elements, quickCheck)
+   choose, oneof, frequency, elements, quickCheck)
 
 import Control.Exception (try)
-import Control.Applicative ((<$>), (<*>))
+import Control.Applicative ((<$>), (<*>), pure)
+import Data.Monoid (mempty)
 import Data.ByteString.Char8 (ByteString, pack)
-import Text.LDAP.Data (AttrType (..), AttrValue (..), Attribute, Component (..), DN, List1)
+import Text.LDAP.Data
+  (AttrType (..), AttrValue (..), Attribute, Component (..),
+   DN, List1, LdifAttrValue (..),
+   boundsElems, ldifSafeInitBounds, ldifSafeBounds)
 import Text.LDAP.Printer (LdapPrinter, runLdapPrinter)
 import qualified Text.LDAP.Printer as Printer
 import Text.LDAP.Parser (LdapParser, runLdapParser)
@@ -29,9 +33,6 @@ testSuite t = simpleInstance $ do
   e <- try $ quickCheck t
   return . Finished $ either (Fail . show) (const Pass) (e :: Either IOError ())
 
-
-boundInt :: Int -> Int -> Gen Int
-boundInt =  curry choose
 
 list :: Gen a -> Int -> Gen [a]
 list g n = sequence [ g | _i <- [1..n] ]
@@ -51,7 +52,7 @@ digit :: Gen Char
 digit =  choose ('0', '9')
 
 oidpe :: Gen ByteString
-oidpe =  (pack <$>) $ boundInt 1 10 >>= list digit
+oidpe =  (pack <$>) $ choose (1, 10) >>= list digit
 
 alpha :: Gen Char
 alpha =  oneof [choose ('A', 'Z'), choose ('a', 'z')]
@@ -60,10 +61,10 @@ keychar :: Gen Char
 keychar =  elements $ '-' : ['0'..'9'] ++ ['A'..'Z'] ++ ['a'..'z']
 
 keystr :: Gen ByteString
-keystr =  (pack <$>) $ (:) <$> alpha <*> (boundInt 0 40 >>= list keychar)
+keystr =  (pack <$>) $ (:) <$> alpha <*> (choose (0, 40) >>= list keychar)
 
 bstring' :: Int -> Int -> Gen ByteString
-bstring' n m = (pack <$>) $ boundInt n m >>= list (elements ['\0'..'\255'])
+bstring' n m = (pack <$>) $ choose (n, m) >>= list (elements ['\0'..'\255'])
 
 bstring :: Int -> Gen ByteString
 bstring =  bstring' 0
@@ -73,19 +74,22 @@ bstring1 =  bstring' 1
 
 
 attrType :: Gen AttrType
-attrType = oneof
-           [ AttrType <$> keystr
-           , AttrOid  <$> (boundInt 1 8 >>= list1 oidpe)
-           ]
+attrType =
+  oneof
+  [ AttrType <$> keystr
+  , AttrOid  <$> (choose (1, 8) >>= list1 oidpe)
+  ]
 
 attrValue :: Gen AttrValue
-attrValue =  AttrValue <$> bstring 0x400
+attrValue =  AttrValue <$> bstring 0x200
 
 component :: Gen Component
-component =  oneof
-             [ S <$> arbitrary
-             , L <$> (boundInt 2 5 >>= list1 arbitrary)
-             ]
+component =
+  frequency
+  [ (1, S <$> arbitrary)
+  , (3, L <$> (choose (2, 5) >>= list1 arbitrary))
+  ]
+
 
 isoProp :: Eq a => LdapPrinter a -> LdapParser a -> a -> Bool
 isoProp pr ps a = Right a == (runLdapParser ps . runLdapPrinter pr $ a)
@@ -100,7 +104,7 @@ instance Arbitrary Component where
   arbitrary = component
 
 instance Arbitrary DN where
-  arbitrary = boundInt 1 30 >>= list1 arbitrary
+  arbitrary = choose (1, 30) >>= list1 arbitrary
 
 prop_attribute :: Attribute -> Bool
 prop_attribute =  isoProp Printer.attribute Parser.attribute
@@ -110,3 +114,13 @@ prop_component =  isoProp Printer.component Parser.component
 
 prop_dn :: DN -> Bool
 prop_dn =  isoProp Printer.dn Parser.dn
+
+prop_ldifAttr :: (AttrType, AttrValue) -> Bool
+prop_ldifAttr =  isoProp
+                 (Printer.ldifAttr Printer.ldifEncodeAttrValue)
+                 (Parser.ldifAttr  Parser.ldifDecodeAttrValue)
+
+prop_openLdapEntry :: (DN, [(AttrType, AttrValue)]) -> Bool
+prop_openLdapEntry =  isoProp
+                      (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
+                      (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
