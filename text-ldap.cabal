@@ -66,3 +66,11 @@ Test-suite pp
   test-module:         PrintParse
   hs-source-dirs:      test
   ghc-options:         -Wall
+
+source-repository head
+  type:       git
+  location:   https://github.com/khibino/haskell-text-ldap
+
+source-repository head
+  type:       mercurial
+  location:   https://bitbucket.org/khibino/haskell-text-ldap
