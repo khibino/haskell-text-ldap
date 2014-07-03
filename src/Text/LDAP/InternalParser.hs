@@ -20,13 +20,13 @@ import Data.Word (Word8)
 import Data.ByteString (ByteString, pack)
 import Data.Attoparsec.ByteString.Char8 (Parser, satisfy)
 
-import Text.LDAP.Data (ordW8, inBounds, exact)
+import Text.LDAP.Data (Bound, ordW8, inBounds, exact)
 
 
 type LdapParser = Parser
 
 -- | Char bounds LDIF safe string
-ldifSafeBounds :: [(Char, Char)]
+ldifSafeBounds :: [Bound Char]
 ldifSafeBounds =
   [ ('\x01', '\x09')
   , ('\x0B', '\x0C')
@@ -34,7 +34,7 @@ ldifSafeBounds =
   ]
 
 -- | Char bounds LDIF safe string first char
-ldifSafeInitBounds :: [(Char, Char)]
+ldifSafeInitBounds :: [Bound Char]
 ldifSafeInitBounds =
   [ ('\x01', '\x09')
   , ('\x0B', '\x0C')
