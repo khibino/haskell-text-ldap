@@ -30,6 +30,9 @@ module Text.LDAP.Data
 
        , ordW8
        , quotation, specialChars
+
+       , ldifSafeBounds
+       , ldifSafeInitBounds
        ) where
 
 import Prelude hiding (reverse)
@@ -154,3 +157,22 @@ data LdifAttrValue
   = LAttrValRaw    ByteString
   | LAttrValBase64 ByteString
   deriving (Eq, Ord, Show)
+
+-- | Char bounds LDIF safe string
+ldifSafeBounds :: [Bound Char]
+ldifSafeBounds =
+  [ ('\x01', '\x09')
+  , ('\x0B', '\x0C')
+  , ('\x0E', '\x7F')
+  ]
+
+-- | Char bounds LDIF safe string first char
+ldifSafeInitBounds :: [Bound Char]
+ldifSafeInitBounds =
+  [ ('\x01', '\x09')
+  , ('\x0B', '\x0C')
+  , ('\x0E', '\x1F')
+  , ('\x21', '\x39')
+  , exact '\x3B'
+  , ('\x3D', '\x7F')
+  ]
