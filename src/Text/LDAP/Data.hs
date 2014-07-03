@@ -25,7 +25,7 @@ module Text.LDAP.Data
        , -- * Weaken constraint but popular list type
          DN', toDN', Component'
 
-       , -- * Charset check interfaces
+       , -- * Low-level Charset check interfaces
          Bound, exact, boundsElems, inBounds, elem', notElem', inSBounds
 
        , ordW8
