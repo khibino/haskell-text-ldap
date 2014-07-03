@@ -130,9 +130,13 @@ consDN h tl = reverse $ h :| tl
 unconsDN :: DN -> (Component, [Component])
 unconsDN dn = (h, tl)  where (h :| tl) = reverse dn
 
+-- | Type of dn component (rdn), simple list type
 type Component' = [Attribute]
+
+-- | Type of dn, simple list type
 type DN' = [Component']
 
+-- | From 'DN' to 'DN''
 toDN' :: DN -> DN'
 toDN' =  map comp' . toList  where
   comp' (S a)  = [a]
