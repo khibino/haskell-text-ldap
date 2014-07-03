@@ -8,7 +8,9 @@
 -- Portability : unknown
 --
 module Text.LDAP.Data
-       ( Attribute
+       (
+         -- * DN AST
+         Attribute
        , AttrType (..), attrOid
        , AttrValue (..)
 
@@ -16,15 +18,19 @@ module Text.LDAP.Data
 
        , DN, consDN, unconsDN
 
-       , DN', toDN', Component'
-
        , List1
-       , Bound, exact, boundsElems, inBounds, elem', notElem', inSBounds
+
+       , LdifAttrValue (..)
+
+       , -- * Weaken constraint but popular list type
+         DN', toDN', Component'
+
+       , -- * Charset check interfaces
+         Bound, exact, boundsElems, inBounds, elem', notElem', inSBounds
 
        , ordW8
        , quotation, specialChars
 
-       , LdifAttrValue (..)
        , ldifSafeBounds
        , ldifSafeInitBounds
        ) where
