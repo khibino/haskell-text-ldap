@@ -16,6 +16,8 @@ module Text.LDAP.Data
 
        , DN, consDN, unconsDN
 
+       , DN', toDN', Component'
+
        , List1
        , Bound, exact, boundsElems, inBounds, elem', notElem', inSBounds
 
@@ -34,7 +36,7 @@ import Data.Char (ord)
 import Data.Word (Word8)
 import Data.ByteString (ByteString)
 import Data.Set (fromList, member)
-import Data.List.NonEmpty (NonEmpty ((:|)), reverse)
+import Data.List.NonEmpty (NonEmpty ((:|)), reverse, toList)
 
 
 -- | Not empty list type
@@ -121,6 +123,14 @@ consDN h tl = reverse $ h :| tl
 -- | Deconstruct dn
 unconsDN :: DN -> (Component, [Component])
 unconsDN dn = (h, tl)  where (h :| tl) = reverse dn
+
+type Component' = [Attribute]
+type DN' = [Component']
+
+toDN' :: DN -> DN'
+toDN' =  map comp' . toList  where
+  comp' (S a)  = [a]
+  comp' (L as) = toList as
 
 -- | Word8 value of Char
 ordW8 :: Char -> Word8
