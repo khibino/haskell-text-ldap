@@ -6,6 +6,7 @@ before_install:
 install:
   - sudo apt-get install haskell-platform haskell-platform-doc haskell-platform-prof cabal-install
 script:
+  - cabal configure
   - cabal test
 after_script:
   - date
