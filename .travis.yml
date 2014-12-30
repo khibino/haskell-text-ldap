@@ -4,7 +4,12 @@ before_install:
   - pwd
   - sudo apt-get update
 install:
-  - sudo apt-get install haskell-platform haskell-platform-doc haskell-platform-prof cabal-install
+  - sudo apt-get install haskell-platform haskell-platform-doc haskell-platform-prof
+  - sudo apt-get install cabal-install
+  - sudo apt-get install libghc-attoparsec-dev libghc-attoparsec-prof libghc-attoparsec-doc
+  - sudo apt-get install libghc-base64-bytestring-dev libghc-base64-bytestring-prof libghc-base64-bytestring-doc
+  - sudo apt-get install libghc-dlist-dev libghc-dlist-prof libghc-dlist-doc
+  - sudo apt-get install libghc-semigroups-dev libghc-semigroups-prof libghc-semigroups-doc
 script:
   - cabal configure
   - cabal test
