@@ -2,3 +2,6 @@ before_install:
   - date
   - cat /proc/cpuinfo
   - pwd
+  - cabal test
+after_script:
+  - date
