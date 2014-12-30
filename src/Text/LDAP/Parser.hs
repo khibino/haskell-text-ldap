@@ -30,7 +30,7 @@ import Data.Monoid ((<>))
 import Data.Word (Word8)
 import Data.ByteString (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS8
-import qualified Data.ByteString.Lazy as LB
+import qualified Data.ByteString.Lazy.Char8 as LB
 import Data.Attoparsec.ByteString.Char8
   (Parser, satisfy, isAlpha_ascii, char, char8, digit)
 import qualified Data.Attoparsec.ByteString.Char8 as AP
