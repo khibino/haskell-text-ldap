@@ -12,6 +12,7 @@ install:
   - sudo apt-get install libghc-semigroups-dev libghc-semigroups-prof libghc-semigroups-doc
 script:
   - cabal configure --enable-tests
+  - cabal build
   - cabal test
 after_script:
   - date
