@@ -6,8 +6,8 @@ module PrintParse (tests) where
 import Distribution.TestSuite
   (Test (Test), TestInstance (TestInstance), Result (Pass, Fail), Progress (Finished))
 import Test.QuickCheck
-  (Testable, Gen, Arbitrary (..),
-   choose, oneof, frequency, elements, quickCheck)
+  (Testable, Gen, Arbitrary (..), Result (Success),
+   choose, oneof, frequency, elements, quickCheckResult)
 
 import Control.Exception (try)
 import Control.Applicative ((<$>), (<*>))
@@ -26,10 +26,22 @@ simpleInstance :: IO Progress -> String -> Test
 simpleInstance p name = Test this  where
   this = TestInstance p name [] [] (\_ _ -> Right this)
 
+qresult :: Test.QuickCheck.Result -> Either String ()
+qresult =  d  where
+  d (Success {}) = Right ()
+  d x            = Left $ show x
+
+showIOError :: Either IOError a -> Either String a
+showIOError =  d  where
+  d (Right x) = Right x
+  d (Left e)  = Left $ show e
+
 testSuite :: Testable prop => prop -> String -> Test
 testSuite t = simpleInstance $ do
-  e <- try $ quickCheck t
-  return . Finished $ either (Fail . show) (const Pass) (e :: Either IOError ())
+  e <- try $ quickCheckResult t
+  return . Finished . either Fail (const Pass) $ do
+    qr <- showIOError e
+    qresult qr
 
 
 list :: Gen a -> Int -> Gen [a]
