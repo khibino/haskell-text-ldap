@@ -18,7 +18,7 @@ import Text.LDAP.Parser (LdapParser, runLdapParser)
 import qualified Text.LDAP.Parser as Parser
 import Data.List.NonEmpty (NonEmpty ((:|)))
 
-import Suite (testSuite)
+import Suite (suite)
 
 
 list :: Gen a -> Int -> Gen [a]
@@ -113,9 +113,9 @@ prop_openLdapEntryIso =
 
 ppTests :: [Test]
 ppTests =
-  [ testSuite prop_attributeIso "attribute iso - print parse"
-  , testSuite prop_componentIso "component iso - print parse"
-  , testSuite prop_dnIso "dn iso - print parse"
-  , testSuite prop_ldifAttrIso "ldifAttr iso - print parse"
-  , testSuite prop_openLdapEntryIso "openLdapEntry iso - print parse"
+  [ suite prop_attributeIso "attribute iso - print parse"
+  , suite prop_componentIso "component iso - print parse"
+  , suite prop_dnIso "dn iso - print parse"
+  , suite prop_ldifAttrIso "ldifAttr iso - print parse"
+  , suite prop_openLdapEntryIso "openLdapEntry iso - print parse"
   ]

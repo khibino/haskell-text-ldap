@@ -1,9 +1,9 @@
-module Error (qresult, showIOError) where
+module Error (qcEither, showIOError) where
 
 import Test.QuickCheck (Result (Success))
 
-qresult :: Test.QuickCheck.Result -> Either String ()
-qresult =  d  where
+qcEither :: Test.QuickCheck.Result -> Either String ()
+qcEither =  d  where
   d (Success {}) = Right ()
   d x            = Left $ show x
 
