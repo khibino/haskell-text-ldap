@@ -1,8 +1,6 @@
 module Error (qresult, showIOError) where
 
-import Test.QuickCheck
-  (Testable, Gen, Arbitrary (..), Result (Success),
-   choose, oneof, frequency, elements, quickCheckResult)
+import Test.QuickCheck (Result (Success))
 
 qresult :: Test.QuickCheck.Result -> Either String ()
 qresult =  d  where

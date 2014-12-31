@@ -1,7 +1,7 @@
 {-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module PrintParse (tests) where
+module PrintParse (ppTests) where
 
 import Distribution.TestSuite (Test)
 import Test.QuickCheck
@@ -111,9 +111,8 @@ prop_openLdapEntryIso =
   (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
   (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
 
-tests :: IO [Test]
-tests =
-  return
+ppTests :: [Test]
+ppTests =
   [ testSuite prop_attributeIso "attribute iso - print parse"
   , testSuite prop_componentIso "component iso - print parse"
   , testSuite prop_dnIso "dn iso - print parse"

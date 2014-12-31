@@ -63,10 +63,11 @@ Test-suite pp
                        , Cabal
 
   type:                detailed-0.9
-  test-module:         PrintParse
+  test-module:         Tests
   other-modules:
                        Error
                        Suite
+                       PrintParse
   hs-source-dirs:      test, test118
   ghc-options:         -Wall
 
