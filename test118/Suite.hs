@@ -1,12 +1,13 @@
 module Suite (suite) where
 
 import Distribution.TestSuite
-  (Test (Test), TestInstance (TestInstance), Result (Pass, Fail), Progress (Finished))
+  (Test (Test), TestInstance (TestInstance), Result (Pass, Fail, Error), Progress (Finished))
 import Test.QuickCheck (Testable, quickCheckResult)
 
 import Control.Exception (try)
+import Control.Applicative ((<$>))
 
-import Error (showIOError, qcEither)
+import Error (qcEither)
 
 
 simpleInstance :: IO Progress -> String -> Test
@@ -15,7 +16,8 @@ simpleInstance p name = Test this  where
 
 suite :: Testable prop => prop -> String -> Test
 suite t = simpleInstance $ do
-  e <- try $ quickCheckResult t
-  return . Finished . either Fail (const Pass) $ do
-    qr <- showIOError e
-    qcEither qr
+  er <- try $ qcEither <$> quickCheckResult t
+  return . Finished $ case er of
+    Right (Right ()) -> Pass
+    Right (Left m)   -> Fail m
+    Left e           -> Error $ show (e :: IOError)
