@@ -11,9 +11,6 @@ install:
   - sudo apt-get install libghc-dlist-dev libghc-dlist-prof libghc-dlist-doc
   - sudo apt-get install libghc-semigroups-dev libghc-semigroups-prof libghc-semigroups-doc
 script:
-  ## - cabal configure --enable-tests
-  - cabal configure
-  - cabal build
-  ## - cabal test
+  - ./run114test.sh
 after_script:
   - date
