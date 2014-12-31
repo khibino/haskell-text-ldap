@@ -3,13 +3,10 @@
 
 module PrintParse (tests) where
 
-import Distribution.TestSuite
-  (Test (Test), TestInstance (TestInstance), Result (Pass, Fail), Progress (Finished))
+import Distribution.TestSuite (Test)
 import Test.QuickCheck
-  (Testable, Gen, Arbitrary (..), Result (Success),
-   choose, oneof, frequency, elements, quickCheckResult)
+  (Gen, Arbitrary (..), choose, oneof, frequency, elements)
 
-import Control.Exception (try)
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
 import Text.LDAP.Data
@@ -21,27 +18,7 @@ import Text.LDAP.Parser (LdapParser, runLdapParser)
 import qualified Text.LDAP.Parser as Parser
 import Data.List.NonEmpty (NonEmpty ((:|)))
 
-
-simpleInstance :: IO Progress -> String -> Test
-simpleInstance p name = Test this  where
-  this = TestInstance p name [] [] (\_ _ -> Right this)
-
-qresult :: Test.QuickCheck.Result -> Either String ()
-qresult =  d  where
-  d (Success {}) = Right ()
-  d x            = Left $ show x
-
-showIOError :: Either IOError a -> Either String a
-showIOError =  d  where
-  d (Right x) = Right x
-  d (Left e)  = Left $ show e
-
-testSuite :: Testable prop => prop -> String -> Test
-testSuite t = simpleInstance $ do
-  e <- try $ quickCheckResult t
-  return . Finished . either Fail (const Pass) $ do
-    qr <- showIOError e
-    qresult qr
+import Suite (testSuite)
 
 
 list :: Gen a -> Int -> Gen [a]

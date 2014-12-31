@@ -64,7 +64,10 @@ Test-suite pp
 
   type:                detailed-0.9
   test-module:         PrintParse
-  hs-source-dirs:      test
+  other-modules:
+                       Error
+                       Suite
+  hs-source-dirs:      test, test118
   ghc-options:         -Wall
 
 source-repository head
