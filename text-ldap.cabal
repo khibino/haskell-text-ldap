@@ -52,6 +52,10 @@ executable ppTest
   ghc-options:         -Wall -rtsopts
   ghc-prof-options:    -prof -fprof-auto
 
+flag test-cabal114
+  description: This flag make sense when Cabal 1.14 is used.
+               If true, use Cabal 1.14 test-suite interface.
+  default:     False
 
 Test-suite pp
   build-depends:         base <5
@@ -68,7 +72,10 @@ Test-suite pp
                        Error
                        Suite
                        PrintParse
-  hs-source-dirs:      test, test118
+  if flag(test-cabal114)
+    hs-source-dirs:      test, test114
+  else
+    hs-source-dirs:      test, test118
   ghc-options:         -Wall
 
 source-repository head
