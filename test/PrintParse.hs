@@ -1,9 +1,9 @@
 {-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module PrintParse (ppTests) where
+module PrintParse (tests) where
 
-import Distribution.TestSuite (Test)
+import Distribution.TestSuite.Compat (prop, TestList, testList)
 import Test.QuickCheck
   (Gen, Arbitrary (..), choose, oneof, frequency, elements)
 
@@ -17,8 +17,6 @@ import qualified Text.LDAP.Printer as Printer
 import Text.LDAP.Parser (LdapParser, runLdapParser)
 import qualified Text.LDAP.Parser as Parser
 import Data.List.NonEmpty (NonEmpty ((:|)))
-
-import Suite (suite)
 
 
 list :: Gen a -> Int -> Gen [a]
@@ -111,11 +109,12 @@ prop_openLdapEntryIso =
   (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
   (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
 
-ppTests :: [Test]
-ppTests =
-  [ suite prop_attributeIso "attribute iso - print parse"
-  , suite prop_componentIso "component iso - print parse"
-  , suite prop_dnIso "dn iso - print parse"
-  , suite prop_ldifAttrIso "ldifAttr iso - print parse"
-  , suite prop_openLdapEntryIso "openLdapEntry iso - print parse"
+tests :: TestList
+tests =
+  testList
+  [ prop prop_attributeIso "attribute iso - print parse"
+  , prop prop_componentIso "component iso - print parse"
+  , prop prop_dnIso "dn iso - print parse"
+  , prop prop_ldifAttrIso "ldifAttr iso - print parse"
+  , prop prop_openLdapEntryIso "openLdapEntry iso - print parse"
   ]
