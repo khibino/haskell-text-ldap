@@ -10,6 +10,8 @@ install:
   - sudo apt-get install libghc-base64-bytestring-dev libghc-base64-bytestring-prof libghc-base64-bytestring-doc
   - sudo apt-get install libghc-dlist-dev libghc-dlist-prof libghc-dlist-doc
   - sudo apt-get install libghc-semigroups-dev libghc-semigroups-prof libghc-semigroups-doc
+  - cabal update
+  - cabal install cabal-test-compat
 script:
   - ./run114test.sh
 after_script:
