@@ -112,9 +112,9 @@ prop_openLdapEntryIso =
 tests :: TestList
 tests =
   testList
-  [ prop prop_attributeIso "attribute iso - print parse"
-  , prop prop_componentIso "component iso - print parse"
-  , prop prop_dnIso "dn iso - print parse"
-  , prop prop_ldifAttrIso "ldifAttr iso - print parse"
-  , prop prop_openLdapEntryIso "openLdapEntry iso - print parse"
+  [ prop "attribute iso - print parse"      prop_attributeIso
+  , prop "component iso - print parse"      prop_componentIso
+  , prop "dn iso - print parse"             prop_dnIso
+  , prop "ldifAttr iso - print parse"       prop_ldifAttrIso
+  , prop "openLdapEntry iso - print parse"  prop_openLdapEntryIso
   ]

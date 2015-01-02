@@ -60,7 +60,7 @@ Test-suite pp
                        , text-ldap
                        , QuickCheck >=2
                        , Cabal
-                       , cabal-test-compat
+                       , cabal-test-compat >=0.2
 
   type:                detailed-0.9
   test-module:         PrintParse
