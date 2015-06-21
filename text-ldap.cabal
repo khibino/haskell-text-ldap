@@ -58,11 +58,10 @@ Test-suite pp
                        , semigroups
                        , text-ldap
                        , QuickCheck >=2
-                       , Cabal
-                       , cabal-test-compat >=0.2
+                       , quickcheck-simple
 
-  type:                detailed-0.9
-  test-module:         PrintParse
+  type:                exitcode-stdio-1.0
+  main-is:             PrintParse.hs
   hs-source-dirs:      test
   ghc-options:         -Wall
 

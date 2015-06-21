@@ -1,11 +1,9 @@
 {-# OPTIONS -fno-warn-orphans #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module PrintParse (tests) where
-
-import Distribution.TestSuite.Compat (prop, TestList, testList)
 import Test.QuickCheck
   (Gen, Arbitrary (..), choose, oneof, frequency, elements)
+import Test.QuickCheck.Simple (defaultMain, Test, qcTest)
 
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
@@ -109,12 +107,14 @@ prop_openLdapEntryIso =
   (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
   (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
 
-tests :: TestList
+tests :: [Test]
 tests =
-  testList
-  [ prop "attribute iso - print parse"      prop_attributeIso
-  , prop "component iso - print parse"      prop_componentIso
-  , prop "dn iso - print parse"             prop_dnIso
-  , prop "ldifAttr iso - print parse"       prop_ldifAttrIso
-  , prop "openLdapEntry iso - print parse"  prop_openLdapEntryIso
+  [ qcTest "attribute iso - print parse"      prop_attributeIso
+  , qcTest "component iso - print parse"      prop_componentIso
+  , qcTest "dn iso - print parse"             prop_dnIso
+  , qcTest "ldifAttr iso - print parse"       prop_ldifAttrIso
+  , qcTest "openLdapEntry iso - print parse"  prop_openLdapEntryIso
   ]
+
+main :: IO ()
+main = defaultMain tests
