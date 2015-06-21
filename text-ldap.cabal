@@ -61,7 +61,7 @@ Test-suite pp
                        , quickcheck-simple
 
   type:                exitcode-stdio-1.0
-  main-is:             PrintParse.hs
+  main-is:             printParse.hs
   hs-source-dirs:      test
   ghc-options:         -Wall
 
