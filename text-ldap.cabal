@@ -46,14 +46,13 @@ executable parseTest
   ghc-options:         -Wall -rtsopts
   -- ghc-prof-options:    -prof -fprof-auto
 
-executable ppTest
-  main-is:             ppTest.hs
-  build-depends:         base <5
-                       , bytestring
-                       , text-ldap
-  hs-source-dirs:      mains
-  ghc-options:         -Wall -rtsopts
-  -- ghc-prof-options:    -prof -fprof-auto
+-- executable ppTest
+--   main-is:             ppTest.hs
+--   build-depends:         base <5
+--                        , bytestring
+--                        , text-ldap
+--   hs-source-dirs:      mains
+--   ghc-options:         -Wall -rtsopts
 
 Test-suite pp
   build-depends:         base <5
