@@ -5,6 +5,7 @@ import Test.QuickCheck
   (Gen, Arbitrary (..), choose, oneof, frequency, elements)
 import Test.QuickCheck.Simple (defaultMain, Test, qcTest)
 
+import Control.Arrow (first)
 import Control.Applicative ((<$>), (<*>))
 import Data.ByteString.Char8 (ByteString, pack)
 import Text.LDAP.Data
@@ -83,8 +84,10 @@ instance Arbitrary AttrValue where
 instance Arbitrary Component where
   arbitrary = component
 
-instance Arbitrary DN where
-  arbitrary = choose (1, 30) >>= list1 arbitrary
+newtype WDN = WDN { unWDN :: DN } deriving (Eq, Show)
+
+instance Arbitrary WDN where
+  arbitrary = (WDN <$>) . list1 arbitrary =<< choose (1, 30)
 
 prop_attributeIso :: Attribute -> Bool
 prop_attributeIso =  isoProp Printer.attribute Parser.attribute
@@ -92,8 +95,8 @@ prop_attributeIso =  isoProp Printer.attribute Parser.attribute
 prop_componentIso :: Component -> Bool
 prop_componentIso =  isoProp Printer.component Parser.component
 
-prop_dnIso :: DN -> Bool
-prop_dnIso =  isoProp Printer.dn Parser.dn
+prop_dnIso :: WDN -> Bool
+prop_dnIso =  isoProp (Printer.dn . unWDN) (WDN <$> Parser.dn)
 
 prop_ldifAttrIso :: (AttrType, AttrValue) -> Bool
 prop_ldifAttrIso =
@@ -101,11 +104,11 @@ prop_ldifAttrIso =
   (Printer.ldifAttr Printer.ldifEncodeAttrValue)
   (Parser.ldifAttr  Parser.ldifDecodeAttrValue)
 
-prop_openLdapEntryIso :: (DN, [(AttrType, AttrValue)]) -> Bool
+prop_openLdapEntryIso :: (WDN, [(AttrType, AttrValue)]) -> Bool
 prop_openLdapEntryIso =
   isoProp
-  (Printer.openLdapEntry Printer.ldifEncodeAttrValue)
-  (Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
+  (Printer.openLdapEntry Printer.ldifEncodeAttrValue . first unWDN)
+  (first WDN <$> Parser.openLdapEntry  Parser.ldifDecodeAttrValue)
 
 tests :: [Test]
 tests =
