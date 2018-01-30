@@ -1,6 +1,6 @@
 
 import System.Environment (getArgs)
-import Control.Applicative
+import Control.Applicative ((<$>))
 import Text.LDAP.Parser
 import qualified Data.ByteString.Lazy.Char8 as LB
 
