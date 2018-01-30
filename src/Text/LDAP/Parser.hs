@@ -36,7 +36,7 @@ import Data.Attoparsec.ByteString.Char8
 import qualified Data.Attoparsec.ByteString.Char8 as AP
 import qualified Data.Attoparsec.ByteString as APW
 import Data.Attoparsec.ByteString.Lazy (parse, eitherResult)
-import qualified Data.ByteString.Base64 as Base64
+import Data.ByteArray.Encoding (Base (Base64), convertFromBase)
 
 import Text.LDAP.Data
   (AttrType (..), AttrValue (..), Attribute, Component, DN, LdifAttrValue (..),
@@ -168,8 +168,10 @@ base64String :: LdapParser ByteString
 base64String =  pack <$> many (satisfyW8 (`inBounds` base64Bounds))
 
 padDecodeB64 :: ByteString -> Either String ByteString
-padDecodeB64 s = Base64.decode (s <> pad)  where
+padDecodeB64 s = fromB64 (s <> pad)  where
   pad = BS8.replicate ((- BS8.length s) `mod` 4) '='
+  fromB64 "" = Right ""      -- avoid bug of older than memory-0.14.14
+  fromB64 bs  = convertFromBase Base64 bs
 
 eitherParser :: String -> Either String a -> LdapParser a
 eitherParser s = either (fail . ((s ++ ": ") ++)) pure
