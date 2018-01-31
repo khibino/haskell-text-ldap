@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Kei Hibino
 maintainer:          ex8k.hibino@gmail.com
-copyright:           Copyright (c) 2014-2017 Kei Hibino
+copyright:           Copyright (c) 2014-2018 Kei Hibino
 category:            Text
 build-type:          Simple
 cabal-version:       >=1.8
@@ -49,14 +49,6 @@ executable parseTest
   hs-source-dirs:      mains
   ghc-options:         -Wall -rtsopts
   -- ghc-prof-options:    -prof -fprof-auto
-
--- executable ppTest
---   main-is:             ppTest.hs
---   build-depends:         base <5
---                        , bytestring
---                        , text-ldap
---   hs-source-dirs:      mains
---   ghc-options:         -Wall -rtsopts
 
 Test-suite pp
   build-depends:         base <5
