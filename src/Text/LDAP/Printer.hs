@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 -- |
 -- Module      : Text.LDAP.Printer
--- Copyright   : 2014 Kei Hibino
+-- Copyright   : 2014-2018 Kei Hibino
 -- License     : BSD3
 --
 -- Maintainer  : ex8k.hibino@gmail.com
