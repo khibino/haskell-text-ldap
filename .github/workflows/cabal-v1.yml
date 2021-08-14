@@ -12,18 +12,33 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         include:
           - ghc: '8.2.2'
-            cabal-install: '2.0.0.1'
+            cabal-install: '2.0'           # hvr binary '2.0.0.1'
+            cabal-option: --jobs=2
           - ghc: '8.0.2'
-            cabal-install: '2.0.0.1'
-          #  cabal-install: '1.24.0.2'
-
+            cabal-install: '1.24'          # hvr binary '1.24.0.2'
+            cabal-option: --jobs=2
+          - ghc: '7.10.3'
+            ghc-option: --ghc-option=-optl-no-pie
+            cabal-install: '1.22'          # hvr binary '1.22.9.0'
+            cabal-option: --jobs=2
+          - ghc: '7.8.4'
+            ghc-option: --ghc-option=-optl-no-pie
+            cabal-install: '1.18'          # hvr binary '1.18.0.4'
+          - ghc: '7.6.3'
+            ghc-option: --ghc-option=-optl-no-pie
+            cabal-install: '1.16'          # hvr binary '1.16.0.2'
+          - ghc: '7.4.2'
+            ghc-option: --ghc-option=-optl-no-pie
+            cabal-install: '1.16'          # '1.14' not found
 
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/setup-haskell@v1
+    - uses: khibino/haskell-actions/setup@v1-g7
+    # - uses: haskell/actions/setup@v1
       with:
         ghc-version: ${{ matrix.ghc }}
         cabal-version: ${{ matrix.cabal-install }}
@@ -40,16 +55,21 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
 
+    - name: Clear cabal configuration
+      run: |
+        # remove cabal configuration in cache
+        rm ~/.cabal/config
+        cabal --version
     - name: Install dependencies
       run: |
         set -ex
         cabal update
-        cabal install --jobs=2 --enable-tests --only-dependencies
+        cabal install ${{ matrix.ghc-option }} ${{ matrix.cabal-option }} --only-dependencies
     - name: Build
       run: |
         set -ex
         cabal configure --enable-tests
-        cabal build --jobs=2
+        cabal build ${{ matrix.ghc-option }} ${{ matrix.cabal-option }}
     - name: Run tests
       run: |
         set -ex
