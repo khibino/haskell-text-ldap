@@ -64,11 +64,11 @@ jobs:
       run: |
         set -ex
         cabal update
-        cabal install ${{ matrix.ghc-option }} ${{ matrix.cabal-option }} --only-dependencies
+        cabal install ${{ matrix.ghc-option }} ${{ matrix.cabal-option }} --only-dependencies --enable-tests
     - name: Build
       run: |
         set -ex
-        cabal configure --enable-tests
+        cabal configure --enable-tests --enable-tests
         cabal build ${{ matrix.ghc-option }} ${{ matrix.cabal-option }}
     - name: Run tests
       run: |
