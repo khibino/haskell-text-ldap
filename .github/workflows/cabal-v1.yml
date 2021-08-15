@@ -8,8 +8,8 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    # dirty hack applying ubuntu-18.04 (bionic) to execute xenial binaries
+    runs-on: ubuntu-18.04
 
     strategy:
       fail-fast: false
@@ -27,13 +27,13 @@ jobs:
             cabal-option: --jobs=2
           - ghc: '7.8.4'
             ghc-option: --ghc-option=-optl-no-pie
-            cabal-install: '1.18'          # hvr binary '1.18.0.4'
+            cabal-install: '1.20'          # hvr binary '1.20.0.3' - test-command of 1.18 does not have ghc-option switch
           - ghc: '7.6.3'
             ghc-option: --ghc-option=-optl-no-pie
-            cabal-install: '1.16'          # hvr binary '1.16.0.2'
+            cabal-install: '1.20'
           - ghc: '7.4.2'
             ghc-option: --ghc-option=-optl-no-pie
-            cabal-install: '1.16'          # '1.14' not found
+            cabal-install: '1.20'
 
     steps:
     - uses: actions/checkout@v2
@@ -63,17 +63,20 @@ jobs:
     - name: Install dependencies
       run: |
         set -ex
+        opfile=CI/cabal-opts-${{ matrix.ghc }}
+        opts="`[ ! -r $opfile ] || cat $opfile`"
         cabal update
-        cabal install ${{ matrix.ghc-option }} ${{ matrix.cabal-option }} --only-dependencies --enable-tests
+        cabal install $opts ${{ matrix.ghc-option }} ${{ matrix.cabal-option }} --avoid-reinstalls --only-dependencies --enable-tests
     - name: Build
       run: |
         set -ex
-        cabal configure --enable-tests --enable-tests
+        cabal configure --enable-tests
         cabal build ${{ matrix.ghc-option }} ${{ matrix.cabal-option }}
     - name: Run tests
       run: |
         set -ex
-        cabal test
+        # pass linker option for re-linking case
+        cabal test ${{ matrix.ghc-option }}
 
 ### Local Variables: ***
 ### mode:yaml ***
