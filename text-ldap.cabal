@@ -36,7 +36,6 @@ library
                        , containers
                        , transformers
                        , attoparsec
-                       , dlist
                        , memory
   if impl(ghc < 8)
     build-depends:       semigroups
