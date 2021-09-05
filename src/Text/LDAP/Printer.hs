@@ -23,14 +23,14 @@ module Text.LDAP.Printer
        ) where
 
 import Prelude hiding (reverse)
-import Data.DList (DList, toList)
+import Data.Monoid (Endo (..))
 import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Char (chr, isAscii, isPrint)
 import Data.Word (Word8)
 import qualified Data.ByteString as BS
 import Data.ByteString.Char8 (ByteString, singleton)
 import qualified Data.ByteString.Lazy as LB
-import Control.Applicative (pure, (<*))
+import Control.Applicative ((<*))
 import Control.Monad.Trans.Writer (Writer, tell, execWriter)
 import Text.Printf (printf)
 import Data.ByteArray.Encoding (Base (Base64), convertToBase)
@@ -46,17 +46,17 @@ import Text.LDAP.InternalParser (ldifSafeString)
 
 
 -- | Printer context type for LDAP data stream
-type LdapPutM = Writer (DList ByteString)
+type LdapPutM = Writer (Endo [ByteString])
 
 -- | 'LdapPrinter' 'a' print type 'a' into context
 type LdapPrinter a = a -> LdapPutM ()
 
 -- | Run 'LdapPrinter'
 runLdapPrinter :: LdapPrinter a -> a -> LB.ByteString
-runLdapPrinter p = LB.fromChunks . toList . execWriter . p
+runLdapPrinter p = LB.fromChunks . (`appEndo` []) . execWriter . p
 
 string :: LdapPrinter ByteString
-string =  tell . pure
+string =  tell . Endo . (:)
 
 bslash :: Word8
 bslash =  ordW8 '\\'
