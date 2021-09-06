@@ -1,5 +1,5 @@
 name:                text-ldap
-version:             0.1.1.13
+version:             0.1.1.14
 synopsis:            Parser and Printer for LDAP text data stream
 description:         This package contains Parser and Printer for
                      LDAP text data stream like OpenLDAP backup LDIF.
